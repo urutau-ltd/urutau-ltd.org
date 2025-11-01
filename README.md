@@ -165,9 +165,9 @@ Loading config file file:///home/fplinux/src/urutau-ltd.org/_config.ts
 
 This repository comes with a Perl script called `nyc`. It's only available
 inside the `guix shell` environment because it's package declaration lives
-inside the `manifest.scm` file. It's inspired by the `hugo` cli but it does
-a much simpler jobset, it's meant to be used in this repository **only** so,
-if you need features make use of your freedoms 1 and 3.
+inside the `manifest.scm` file. It's inspired by the `hugo` cli but it does a
+much simpler jobset, it's meant to be used in this repository **only** so, if
+you need features make use of your freedoms 1 and 3.
 
 Inside the guix shell environment you can consult the usage of this tool by
 running `nyc --help`.
