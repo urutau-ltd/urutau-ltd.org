@@ -1,0 +1,12 @@
+.git
+node_modules
+output
+vendor
+.dir-locals.el
+.dockerignore
+.gitignore
+LICENSE
+Dockefile
+README.md
+genmail.sh
+manifest.scm

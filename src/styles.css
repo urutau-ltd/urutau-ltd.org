@@ -1,0 +1,49 @@
+:root {
+    --pagefind-ui-text: #a5d8ff;
+}
+
+body {
+    font-family: "Sen", Fallback, sans-serif;
+    font-optical-sizing: auto;
+    font-weight: auto;
+    font-style: normal;
+    src:
+        url("/fonts/sen-normal-400-800-latin.woff2") format("woff2"),
+        url("/fonts/sen-normal-400-800-latin-ext.woff2") format("woff2");
+}
+
+.urutau-logo {
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+}
+
+@media (prefers-color-scheme: light) {
+    /* light */
+
+    :root {
+        --pagefind-ui-primary: #d0ebff;
+        --pagefind-ui-background: #f2f4f6;
+        --pagefind-ui-border: #a5d8ff;
+        --pagefind-ui-tag: #a5d8ff;
+    }
+
+    .hljs {
+        background: unset;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    /* dark */
+
+    :root {
+        --pagefind-ui-primary: #0d375e;
+        --pagefind-ui-background: #252521;
+        --pagefind-ui-border: #a5d8ff;
+        --pagefind-ui-tag: #a5d8ff;
+    }
+
+    .hljs {
+        background: unset;
+    }
+}

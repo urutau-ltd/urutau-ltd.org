@@ -1,0 +1,9 @@
+{
+    "name": "Urutaú Limited - Software Libre",
+    "short_name": "Urutaú LTD",
+    "theme_color": "#252521",
+    "background_color": "#121210",
+    "display": "standalone",
+    "scope": "./",
+    "start_url": "./"
+}

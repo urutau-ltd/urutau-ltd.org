@@ -1,0 +1,405 @@
+#!/usr/bin/env perl
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2024-2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+#
+#   , _ ,      _    _            _                     _ _      _
+#  ( o o )    | |  | |          | |                   | | |    | |
+# /'` ' `'\   | |  | |_ __ _   _| |_ __ _ _   _ ______| | |_ __| |
+# |'''''''|   | |  | | '__| | | | __/ _` | | | |______| | __/ _` |
+# |\\'''//|   | |__| | |  | |_| | || (_| | |_| |      | | || (_| |
+#    """       \____/|_|   \__,_|\__\__,_|\__,_|      |_|\__\__,_|
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the  GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+use v5.36;
+
+use utf8;
+use open qw( :std :encoding(UTF-8));
+use POSIX;
+
+use Getopt::Long;
+use Pod::Usage;
+
+use File::Basename;
+use File::Path qw(make_path remove_tree);
+use File::Copy qw(move);
+
+use Readonly;
+our $VERSION = version->declare("v1.0.0");
+
+Readonly::Array my @PROTECTED_PATHS => (
+  'node_modules',
+  'public',
+  '_config.ts',
+  'deno.json',
+  'src', # You might be insane...
+  'src/_includes',
+  'src/_data.yml',
+  'src/components',
+  'src/posts',
+  'src/privacy_policy',
+  'src/index.page.tsx'
+);
+
+Readonly::Scalar my $TRASH_DIR => '.nyc-trash';
+
+exit main( @ARGV );
+
+sub main {
+  my $help = 0;
+  my $verbose = 0;
+  my $dry_run = 0;
+  
+  my $command = shift @_;
+  my @args = @_;
+
+  GetOptions(
+    'help|?' => \$help,
+    'verbose|v' => \$verbose,
+    'dry-run|d' => \$dry_run,
+    ) or pod2usage(2);
+  
+  if ($help || !$command) {
+    pod2usage(-verbose => 2, -exitval => 0);
+  }
+  
+  my $opts = {
+    help => $help,
+    verbose => $verbose,
+    dry_run => $dry_run,
+  };
+  
+  my $exit_code = 1;
+  
+  if ($command eq 'add') {
+    my $type = shift @args;
+    if (!$type) {
+      plog("Error: Either 'post' or 'page' MUST be provided for 'add' option!");
+      pod2usage(-sections => 'add', -exitval => 1);
+    }
+    
+    my $title = join(' ', @args);
+    
+    if (!$title) {
+      plog("Error: Missing title for 'add'");
+      pod2usage(-sections => 'add', -exitval => 1);
+    }
+
+    $exit_code = cmd_add($type, $title, $opts);
+  } elsif ($command eq 'rm') {
+    my $path = shift @args;
+    if (!$path) {
+      plog("Error: A path MUST be provied for 'rm' option!");
+      pod2usage(-sections => 'rm', -exitval => 1);
+    }
+  } else {
+     plog("Error: Unknown command '$command' was provided!");
+     pod2usage(-verbose => 1, -exitval => 1);
+  }
+
+  return $exit_code;
+}
+
+sub plog($msg) {
+  my $timestamp = strftime("%Y-%m-%d %H:%M:%S", localtime);
+  say "[NYC] - [$timestamp]: $msg";
+}
+
+sub is_protected_path($path) {
+  my $normalized_path = $path;
+  $normalized_path =~ s/^\.\?//;
+
+  for my $protected (@PROTECTED_PATHS) {
+    if ($normalized_path eq $protected || $normalized_path =~ /^\Q$protected\E[\/]/) {
+      return 1;
+    }
+  }
+  
+  if ($normalized_path =~ /\.\./ || $normalized_path =~ /^\//) {
+    plog("Warning: '$path' contains '..' or is an absolute path. Operation forbidden.");
+    return 1;
+  } 
+    return 0;
+}
+
+sub prompt_for_confirmation($message) {
+    print "$message (Y/n): ";
+    my $answer = <STDIN>;
+    chomp $answer;
+    return $answer =~ /^[Yy]$/ ? 1 : 0;
+}
+
+sub get_slug($title) {
+  my $slug = lc($title);
+  $slug =~ s/\s+/-/g;
+  $slug =~ s/[^a-z0-9-]+//g;
+  $slug =~ s/-+/-/g;
+  $slug =~ s/^-+//;
+  $slug =~ s/-+$//; 
+  return $slug;
+}
+
+sub cmd_add($type, $title, $opts) {
+    my $dry_run = $opts->{dry_run};
+    my $verbose = $opts->{verbose};
+
+    plog("Adding a new: $type") if $verbose;
+
+    my ($dir, $layout);
+
+    if ($type eq 'post') {
+        $dir = 'posts';
+        $layout = 'post.tsx';
+    } elsif ($type eq 'page') {
+        $dir = '.';
+        $layout = 'layout.tsx';
+    } else {
+        plog("Error: Invalid content type: '$type'. Use 'post' or 'page'.");
+        return 1;
+    }
+
+    my $slug = get_slug($title);
+    my $filename;
+    my $fullpath;
+
+    if ($type eq 'post') {
+        # Posts go under src/posts/<postname>.md
+        $filename = "$slug.md";
+        $fullpath = "$dir/$filename";
+    } elsif ($type eq 'page') {
+        # Pages go under src/<pagename>.md
+        $filename = "$slug.md";
+        $fullpath = "$dir/$filename";
+    }
+
+    if (-e $fullpath) {
+        plog("Error: File already exists at: '$fullpath'.");
+        return 1;
+    }
+    
+    if (is_protected_path($fullpath)) {
+      plog("Error: '$fullpath' is in the list of protected paths!");
+      return 1;
+    }
+
+    plog("Creating file: $fullpath") if $verbose;
+    
+    my $date = strftime("%Y-%m-%d", localtime);
+    my $content = <<'EOF';
+---
+title: "$title"
+date: "$date"
+layout: "_includes/layouts/$layout"
+---
+
+# $title
+
+EOF
+    $content =~ s/\$title/$title/g;
+    $content =~ s/\$date/$date/g;
+    $content =~ s/\$layout/$layout/g;
+
+
+    if ($dry_run) {
+        plog("Dry-Run: Should create '$fullpath' with content:\n$content");
+    } else {
+        make_path(dirname($fullpath)) unless -d dirname($fullpath);
+        
+        open(my $fh, '>', $fullpath) or do {
+            plog("Error: Unable to create '$fullpath': $!");
+            return 1;
+        };
+        print $fh $content;
+        close($fh);
+        plog("Success: Created a new $type at '$fullpath'!");
+    }
+
+    return 0;
+}
+
+sub cmd_rm($path, $opts) {
+    my $dry_run = $opts->{dry_run};
+    my $verbose = $opts->{verbose};
+
+    plog("Deleting: $path") if $verbose;
+
+    my $fullpath = $path;
+
+    unless (-e $fullpath) {
+        plog("Error: '$fullpath' no such file or directory.");
+        return 1;
+    }
+    
+    if (is_protected_path($fullpath)) {
+      plog("Error: '$fullpath' is a protected node and cannot be deleted!");
+      return 1;
+    }
+    
+    unless ($dry_run) {
+      unless (prompt_for_confirmation("Are you sure you wish to logically remove: '$fullpath'?")) {
+        plog("Cancelled.");
+        return 0;
+      }
+    }
+
+    my $trash_path = $TRASH_DIR;
+    unless (-d $trash_path) {
+      plog("Creating trash directory: $trash_path") if $verbose;
+      make_path($trash_path) or do {
+        plog("Error: Unable to create trash directory: '$trash_path': $!");
+        return 1;
+      };
+    }
+
+    my $timestamp = strftime("%Y%m%d_%H%M%S", localtime);
+    my $basename = basename($fullpath);
+    my $dest_path = "$trash_path/$basename.$timestamp";
+
+    plog("Moving '$fullpath' to '$dest_path'") if $verbose;
+
+    if ($dry_run) {
+        plog("Dry-Run: Should move (backup) '$fullpath' to '$dest_path'.");
+        plog("Dry-Run: Original path should be deleted.");
+    } else {
+        if (move $fullpath, $dest_path) {
+            plog("Success: Deleted file to: '$dest_path'.");
+            plog("To undo the deletion move '$dest_path' back to '$fullpath'.");
+        } else {
+            plog("Error: Unable to logically delete '$fullpath': $!");
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+nyc - Very simple CLI tool to manage a Lume markdown blog!
+
+=head1 SYNOPSIS
+
+B<nyc> [OPTIONS] I<COMMAND> [ARGS]
+
+COMMANDS:
+
+add <type> <title ...>    # Creates a new post/page.
+
+rm <path>                 # Deletes a project node.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<-h, --help>
+
+Show this help screen.
+
+=item B<-v, --verbose>
+
+Shows detailed run information
+
+=item B<-d, --dry-run>
+
+Shows what 'should' be done without mutating the project.
+
+=back
+
+=head1 COMMANDS
+
+=head2 add
+
+Creates a new Markdown node with a pre-made I<frontmatter>.
+
+Usage: B<nyc add> I<type> I<title>
+
+=over 8
+
+=item I<type>
+
+'post' (inside src/posts/) or 'page' (inside src/)
+
+=item I<title>
+
+The title used for the I<frontmatter> and I<slug> generation (the filename)
+
+=back
+
+Example: B<nyc add post> Guix Rocks
+
+=head2 rm
+
+Deletes a file or directory in the project. This is a dangerous command!
+
+To reduce the risk, this command comes with some security checks and bounds
+before doing the operations:
+
+=over 1
+
+=item Asks for B<confirmaton> before deletion
+
+=item Creates a B<trashbin-like> directory and moves the 'deleted' files there.
+
+=item B<Blocks> deletion of key components of the site.
+
+=back
+
+Uso: B<nyc rm> I<path>
+
+=over 8
+
+=item I<path>
+
+Relative path to the file or directory you wish to delete.
+
+=back
+
+Ejemplo: B<nyc rm> posts/bad-post.md
+
+=head1 DESCRIPTION
+
+nyc is a CLI tool written in Perl for GNU Guix. It's meant to live
+inside the Guix shell environment of this project and should not be
+used as a tool to manage B<all> Lume sites.
+
+The tool is inspired by the hugo cli, although it's much simpler since the goal
+is not to replace hugo, just to provide an easy way to add new blog posts
+with the templating I need.
+
+=head1 BUGS
+
+Please report any bugs or issues using the repository's bug tracker.
+
+=head1 AUTHOR & COPYING
+
+Urutaú Limited <softwarelibre@urutau-ltd.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+=cut
+

@@ -1,0 +1,47 @@
+# -*- mode: makefile-gmake; -*-
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright © 2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+# The location of the manifest file for this project
+DEV_ENV_MANIFEST="manifest.scm"
+
+USER_HOME = $${HOME}
+DENO_BIN_DIR = $(USER_HOME)/.deno/bin
+
+env: ## Starts a development guix shell for this channel
+	@echo "==> [LUME/DEV]: Spinning up a development environment..."
+	@guix shell --emulate-fhs \
+	--container \
+	--network \
+	--nesting \
+	--expose=$(DENO_BIN_DIR) \
+	-m $(DEV_ENV_MANIFEST) -- bash -c 'export PATH=$(USER_HOME)/.deno/bin:$$PATH && export TERM=xterm-256color && exec bash'
+
+dev: ## Starts a watch server for lume to show changes
+	@echo "==> [LUME/DEV]: Starting a dev loop for lume site..."
+	@deno task serve
+
+build: ## Builds the productive lume Site
+	@echo "==> [LUME/DEV]: Building lume site..."
+	@deno task build
+	@echo "==> [LUME/DEV]: Finished building lume site..."
+
+ci: ## Checks the code quality
+	@echo "==> [LUME/DEV]: Checking code quality..."
+	@deno check
+	@deno lint
+	@deno fmt --check
+	@echo "==> [LUME/DEV]: Quality checks finished!"

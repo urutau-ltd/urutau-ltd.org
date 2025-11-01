@@ -1,0 +1,31 @@
+# -*- mode: makefile-gmake; -*-
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2024-2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+TAG := sl.urutau-ltd.org/urutau-ltd/builder:latest
+
+image: ## Make a builder podman image for this site
+	@echo "==> [LUME/PODMAN]: Building podman image..."
+	podman build -t $(TAG) .
+	@echo "==> [LUME/PODMAN]: Finished building podman image!"
+
+oci-build: ## Builds the site using the image
+	@echo "==> [LUME/PODMAN-BUILD]: Building site using the podman image"
+	podman run --rm --name="builder" -v ./src:/srv/src -v ./output/:/srv/output $(TAG)
+	@echo "==> [LUME/PODMAN-BUILD]: Site finished building!"
+
+push-image: ## Push OCI image to the container registry
+	podman push --tls-verify=false $(TAG)
