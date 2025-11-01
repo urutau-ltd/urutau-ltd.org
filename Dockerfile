@@ -5,7 +5,7 @@
 # client's browser using the under-the-hood ESBuild integration.
 #
 # === BUILD STAGE ===
-FROM docker.io/denoland/deno:alpine-2.5.4
+FROM docker.io/denoland/deno:alpine-2.5.6
 
 
 WORKDIR srv/
