@@ -6,12 +6,20 @@ Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging
 and nothing more interesting than that.
 
+> [!IMPORTANT]
+> The source code of this repository is developed elsewhere. GitHub is used for
+> purely utilitarian (free hosting) purposes. Codeberg is used as a read-only
+> mirror. Thus, all issues and merge requests in those platforms **will** be
+> ignored.
+
 ## Features
 
 - `missing.css` as minimalistic CSS library
 - Almost [slow types](https://jsr.io/docs/about-slow-types) free.
 - **ZERO** tracking
 - Licensed AGPL-3.0+ (where applicable) to ensure your freedom ;)
+- Static site files
+  [verified with attestations](https://github.com/FuncProgLinux/urutau-ltd.org/attestations)
 
 ## Usage
 
@@ -152,6 +160,17 @@ Loading config file file:///home/fplinux/src/urutau-ltd.org/_config.ts
 🍾 Site built into ./output
   17 files generated in 8.03 seconds
 ```
+
+### The `nyc` utility
+
+This repository comes with a Perl script called `nyc`. It's only available
+inside the `guix shell` environment because it's package declaration lives
+inside the `manifest.scm` file. It's inspired by the `hugo` cli but it does
+a much simpler jobset, it's meant to be used in this repository **only** so,
+if you need features make use of your freedoms 1 and 3.
+
+Inside the guix shell environment you can consult the usage of this tool by
+running `nyc --help`.
 
 ## Building on Podman
 
