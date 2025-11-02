@@ -45,6 +45,7 @@ import lang_yaml from "highlight.js/lib/languages/yaml";
 import { ErrorMessage } from "lume/plugins/seo/mod.ts";
 
 const site: Site = lume({
+    location: new URL("https://urutau-ltd.org"),
     src: "./src",
     dest: "./output",
     watcher: {
