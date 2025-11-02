@@ -3,7 +3,29 @@
     "short_name": "Urutaú LTD",
     "theme_color": "#252521",
     "background_color": "#121210",
-    "display": "standalone",
+    "display": "fullscreen",
     "scope": "./",
-    "start_url": "./"
+    "start_url": "./",
+    "description": "Lleva nuestro sitio web a todos lados para leer incluso sin conexión. Sin anuncios ni rastreadores.",
+    "id": "a8621e4c-7904-4ac2-986a-b7b7d8d6e9b1",
+    "lang": "es",
+    "display_override": [
+        "window-controls-overlay",
+        "standalone"
+    ],
+    "categories": [
+        "education",
+        "personalization",
+        "productivity",
+        "security"
+    ],
+    "shortcuts": [
+        {
+            "name": "Blog",
+            "url": "https://urutau-ltd.org/posts/",
+            "description": "Leer los últimos artículos"
+        }
+    ],
+    "orientation": "any",
+    "dir": "auto"
 }
