@@ -165,6 +165,7 @@ site.use(codeHighlight({
 }));
 
 site.add("styles.css", "urutau.css");
+site.add("public/favicon.ico", "favicon.ico");
 site.add("public/img/", "img/");
 site.add("public/manifest.json", "manifest.json");
 

@@ -3,4 +3,5 @@ layout: layouts/post.tsx
 
 metas:
     title: "=title"
+    image: "=image"
     lang: es
