@@ -1,4 +1,5 @@
 ---
+title: Contacto
 layout: layout.tsx
 type: page
 ---

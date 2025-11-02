@@ -1,4 +1,5 @@
 ---
+title: Acuerdo de Privacidad
 layout: layout.tsx
 ---
 

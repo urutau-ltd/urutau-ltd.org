@@ -50,7 +50,7 @@ const SiteNavbar = ({ url }: Props): JSX.Component => {
                 class="urutau-logo"
                 alt="Logitipo de Urutaú Limited mostrando una caricatura de un ave Nyctibius"
                 src="/img/urutau.png"
-                loading="lazy"
+                fetchpriority="high"
             />
             <h1>Urutaú LTD.</h1>
             <nav>

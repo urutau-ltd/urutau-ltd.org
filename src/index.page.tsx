@@ -1,7 +1,7 @@
 import { Data } from "lume/core/file.ts";
 
-export const title = "¡Bienvenid@!";
-export const layout = "layout.tsx";
+export const title: string = "¡Bienvenid@!";
+export const layout: string = "layout.tsx";
 
 export default (data: Lume.Data, _helpers: Lume.Helpers): JSX.Component => {
     const posts: Data[] = data.search.pages("type=post", "date=desc", 3);
@@ -35,7 +35,7 @@ export default (data: Lume.Data, _helpers: Lume.Helpers): JSX.Component => {
             <section>
                 <div class="flex-row flex-wrap:wrap">
                     {posts.map((post: Data, _index: number): JSX.Component => (
-                        <section class="box flex-grow:2">
+                        <article class="box flex-grow:2">
                             <h2>{post.title}</h2>
                             <h3>{post.description}</h3>
                             <hr />
@@ -58,7 +58,7 @@ export default (data: Lume.Data, _helpers: Lume.Helpers): JSX.Component => {
                             <a href={post.url}>
                                 Leer más...
                             </a>
-                        </section>
+                        </article>
                     ))}
                 </div>
             </section>
