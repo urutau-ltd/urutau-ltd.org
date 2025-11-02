@@ -10,6 +10,7 @@ tags:
     - Guix
     - Dev
 draft: false
+openGraphLayout: /layouts/og.tsx
 ---
 
 Si estás leyendo esto, probablemente nos encontraste en algún otro sitio o

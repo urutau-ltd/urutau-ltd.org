@@ -6,13 +6,14 @@ import googleFonts from "lume/plugins/google_fonts.ts";
 import jsx from "lume/plugins/jsx.ts";
 import lume from "lume/mod.ts";
 import metas from "lume/plugins/metas.ts";
+import ogImages from "lume/plugins/og_images.ts";
+import pageFind from "lume/plugins/pagefind.ts";
 import postcss from "lume/plugins/postcss.ts";
 import redirects from "lume/plugins/redirects.ts";
 import robots from "lume/plugins/robots.ts";
 import seo from "lume/plugins/seo.ts";
 import sitemap from "lume/plugins/sitemap.ts";
 import slugifyUrls from "lume/plugins/slugify_urls.ts";
-import pageFind from "lume/plugins/pagefind.ts";
 
 // Additional highlight.JS languages
 import lang_awk from "highlight.js/lib/languages/awk";
@@ -75,6 +76,8 @@ site.use(googleFonts({
 }));
 
 site.use(metas());
+site.use(ogImages());
+
 site.use(postcss());
 site.add("npm:missing.css@1.2.0", "missing.css");
 
