@@ -1,4 +1,5 @@
 ---
+title: Acerca De
 layout: layout.tsx
 type: page
 ---
@@ -23,7 +24,18 @@ nuestras iniciativas buscan generar impacto directo en la región a través de:
 En esencia, Urutaú Limited es un punto de encuentro para el talento que, de
 forma desinteresada, se dedica a construir un futuro digital más libre y justo.
 
-## No somos
+## Este sitio
+
+El sitio está hecho y creado a título personal del autor (_FuncProgLinux_).
+Todas las opiniones aquí me represantan a mi y solo a mi. Es _posible_ que
+dichas opiniones cambien o se refuerzen con el tiempo, si encuentras alguna
+publicación de este sitio molesta, ofensiva o simplemente estás en desacuerdo
+puedes solucionar el problema presionando <kbd>Ctrl</kbd> + <kbd>w</kbd> en la
+mayoría de navegadores modernos. Con respecto a los hechos o errores que pueda
+haber cometido en mis instrucciones o definiciones técnicas, puedes usar el
+correo de contacto en este sitio para reportar dichos errores.
+
+## Urutaú Limited **NO** es:
 
 - **Una empresa/empredimiento comercial**: Además de que no generamos ni un solo
   centavo, no buscamos activamente vender productos o servicios a quienes
