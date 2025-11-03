@@ -87,6 +87,13 @@ const SiteNavbar = ({ url }: Props): JSX.Component => {
                                     text="Recomendados"
                                 />
                             </li>
+                            <li>
+                                <LinkItem
+                                    currentUrl={url}
+                                    href="/software"
+                                    text="Software"
+                                />
+                            </li>
                         </ul>
                     </li>
                     <li>
