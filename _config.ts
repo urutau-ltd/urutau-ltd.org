@@ -1,7 +1,6 @@
 import Site from "lume/core/site.ts";
 import base_path from "lume/plugins/base_path.ts";
 import codeHighlight from "lume/plugins/code_highlight.ts";
-import esbuild from "lume/plugins/esbuild.ts";
 import feed from "lume/plugins/feed.ts";
 import googleFonts from "lume/plugins/google_fonts.ts";
 import jsx from "lume/plugins/jsx.ts";
@@ -58,8 +57,6 @@ const site: Site = lume({
 
 /* Enable JSX/TSX Support */
 site.use(jsx());
-
-site.use(esbuild());
 
 site.use(pageFind({
     ui: {
