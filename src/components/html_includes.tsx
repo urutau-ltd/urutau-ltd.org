@@ -36,6 +36,34 @@ const HeadIncludes = ({ title }: Props): JSX.Component => {
                 content="blue"
             />
             <link rel="manifest" href="manifest.json" />
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `
+            (() => {
+                if ('serviceWorker' in navigator) {
+                    globalThis.addEventListener("load", () => {
+                        navigator.serviceWorker.register("/sw.js", {
+                            type: "module",
+                            scope: "/",
+                        })
+                        .then(
+                            (reg) =>
+                                console.info(
+                                    \`SW: Registered correctly as a module!\`,
+                                ),
+                        )
+                        .catch(
+                            (err) =>
+                                console.error(
+                                    \`SW: Failed to register service worker: \${err}\`,
+                                ),
+                        );
+                    });
+                }
+            })();
+        `,
+                }}
+            />
         </head>
     );
 };
