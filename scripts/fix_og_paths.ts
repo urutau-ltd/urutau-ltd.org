@@ -1,4 +1,5 @@
 import { join } from "@std/path";
+import { patchOGPath } from "$urutau/lib/og_patcher.ts";
 
 /**
  * This function is a workaround to fix the OpenGraph paths not being accessible from the metas plugin with the
@@ -13,6 +14,10 @@ import { join } from "@std/path";
 export const fixOGPaths = async (
     targetDir: string = "./output/posts",
 ): Promise<void> => {
+    console.info(
+        `🔎 Scanning ${targetDir} for OpenGraph placeholders...`,
+    );
+
     try {
         for await (const entry of Deno.readDir(targetDir)) {
             if (!entry.isDirectory) continue;
@@ -23,26 +28,26 @@ export const fixOGPaths = async (
             try {
                 const text: string = await Deno.readTextFile(indexPath);
 
-                const contentRegex: RegExp = /\/posts\/@\/index\.png/g;
+                const replaced: string = patchOGPath(text, slug);
 
-                if (contentRegex.test(text)) {
-                    const replaced = text.replace(
-                        contentRegex,
-                        `/posts/${slug}/index.png`,
-                    );
+                if (replaced !== text) {
                     await Deno.writeTextFile(indexPath, replaced);
                     console.info(
-                        `📝 Patched OG image path for post with slug: ${slug}`,
+                        `✅ OpenGraph path patched for post with slug: ${slug}`,
+                    );
+                } else {
+                    console.info(
+                        `➡️ Skipped post with slug: ${slug}`,
                     );
                 }
             } catch (err: unknown) {
                 if (err instanceof Deno.errors.NotFound) {
-                    console.error(
-                        `${indexPath} no such file or directory. Skipping...`,
+                    console.warn(
+                        `⚠️ ${indexPath} no such file or directory. Skipping...`,
                     );
                 } else if (err instanceof Error) {
                     console.error(
-                        `Error reading ${indexPath}: ${err.message}. Skipping...`,
+                        `❌ Error reading ${indexPath}: ${err.message}. Skipping...`,
                     );
                 }
             }
@@ -50,7 +55,7 @@ export const fixOGPaths = async (
     } catch (err: unknown) {
         if (err instanceof Error) {
             console.error(
-                `Error reading directory ${targetDir}: ${err.message}`,
+                `❌ Error reading directory ${targetDir}: ${err.message}`,
             );
             throw err;
         } else {

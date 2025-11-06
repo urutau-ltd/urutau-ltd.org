@@ -196,7 +196,13 @@ sub cmd_add($type, $title, $opts) {
     my $content = <<'EOF';
 ---
 title: "$title"
+description: "Include a description here."
 date: "$date"
+author: "YourName"
+image: "/posts/@/index.png"
+draft: true
+tags:
+    - Example
 layout: "_includes/layouts/$layout"
 ---
 

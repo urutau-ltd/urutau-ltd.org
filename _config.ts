@@ -224,7 +224,7 @@ site.use(seo({
     },
 }));
 
-site.addEventListener("afterBuild", async () => {
+site.addEventListener("afterBuild", async (): Promise<void> => {
     console.info("🏗  Running post-build tasks...");
     console.info("🔧 Fixing OG image paths...");
     const postsDir: string = new URL("output/posts", import.meta.url).pathname;

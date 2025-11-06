@@ -44,4 +44,5 @@ ci: ## Checks the code quality
 	@deno check
 	@deno lint
 	@deno fmt --check
+	@deno test
 	@echo "==> [LUME/DEV]: Quality checks finished!"
