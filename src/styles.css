@@ -18,6 +18,12 @@ body {
     height: 150px;
 }
 
+.urutau-404 {
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+}
+
 @media (prefers-color-scheme: light) {
     /* light */
 
