@@ -47,6 +47,21 @@ Este sitio web utiliza la siguiente matriz de tecnologías:
 
 ## Otras atribuciones
 
+## urutau.png / urutau.svg
+
 El logo presente en esta página es propiedad de Urutaú Limited, también conocido
 como Urutaú LTD. Puedes utilizarlo bajo la licencia
 [Creative Commons Atribución/Reconocimiento-SinDerivados 4.0 Internacional (CC-BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/deed.es).
+
+### 404.jpg
+
+La imágen utilizada en las páginas de error 404 (no encontrado) se titula
+_Nyctibius Griseus_ con la descripción:
+
+> Nyctibius griseus en la Reserva para Parque Nacional San Rafael / Tekoha
+> Guasu, Paraguay. (octubre 2018)
+
+Es autoría de: [Gmmv1980](https://commons.wikimedia.org/wiki/User:Gmmv1980) bajo
+la licencia
+[Creative Commons Attribution-Share Alike 4.0
+International](https://creativecommons.org/licenses/by-sa/4.0/deed.en)
