@@ -2,6 +2,7 @@ type: post
 layout: layouts/post.tsx
 
 metas:
-    title: "=title"
+    title: "=title || $h1 || Default title"
+    description: "=description || Default description "
     image: "=image"
     lang: es
