@@ -43,6 +43,7 @@ import lang_xml from "highlight.js/lib/languages/xml";
 import lang_yaml from "highlight.js/lib/languages/yaml";
 
 import { ErrorMessage } from "lume/plugins/seo/mod.ts";
+import { fixOGPaths } from "./scripts/fix_og_paths.ts";
 
 const site: Site = lume({
     location: new URL("https://urutau-ltd.org"),
@@ -222,5 +223,13 @@ site.use(seo({
         }
     },
 }));
+
+site.addEventListener("afterBuild", async () => {
+    console.info("🏗  Running post-build tasks...");
+    console.info("🔧 Fixing OG image paths...");
+    const postsDir: string = new URL("output/posts", import.meta.url).pathname;
+    await fixOGPaths(postsDir);
+    console.info("✅ Post-build tasks completed.");
+});
 
 export default site;

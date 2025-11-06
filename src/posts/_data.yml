@@ -1,8 +1,0 @@
-type: post
-layout: layouts/post.tsx
-
-metas:
-    title: "=title || $h1 || Default title"
-    description: "=description || Default description "
-    image: "=image"
-    lang: es

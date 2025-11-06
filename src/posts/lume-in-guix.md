@@ -3,6 +3,7 @@ title: Creando un sitio estático con Lume, Deno y GNU GUIX
 description: Cómo creamos y mantenemos este sitio web
 date: "2025-10-26"
 author: "FuncProgLinux"
+image: "/posts/@/index.png"
 tags:
     - Deno
     - TypeScript
@@ -10,7 +11,6 @@ tags:
     - Guix
     - Dev
 draft: false
-openGraphLayout: /layouts/og.tsx
 ---
 
 Si estás leyendo esto, probablemente nos encontraste en algún otro sitio o
