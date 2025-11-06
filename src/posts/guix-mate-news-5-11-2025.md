@@ -3,14 +3,12 @@ title: "Noticias Guix MATE (2025-11-05)"
 description: Noticias del canal del entorno de escritorio MATE.
 date: "2025-11-06"
 author: "FuncProgLinux"
-layout: "layouts/post.tsx"
+image: "/posts/@/index.png"
 draft: false
-image: /index.png
 tags:
     - Noticias
     - MATE
     - Guix
-openGraphLayout: /layouts/og.tsx
 ---
 
 <img style="height: 150px; width: 150px;" src="/img/guix-mate.png"/>
