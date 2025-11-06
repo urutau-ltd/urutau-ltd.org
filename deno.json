@@ -1,11 +1,13 @@
 {
     "imports": {
+        "@std/assert": "jsr:@std/assert@^1.0.15",
         "@std/path": "jsr:@std/path@^1.1.2",
         "highlight.js": "npm:highlight.js@^11.11.1",
         "lume/": "https://cdn.jsdelivr.net/gh/lumeland/lume@3.1.1/",
         "lume/jsx-runtime": "https://cdn.jsdelivr.net/gh/oscarotero/ssx@0.1.12/jsx-runtime.ts",
         "missing.css": "npm:missing.css@^1.2.0",
         "$urutau/components/": "./src/components/",
+        "$urutau/lib/": "./lib/",
         "$urutau/types": "./src/types/mod.ts"
     },
     "permissions": {
