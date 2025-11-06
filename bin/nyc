@@ -42,11 +42,9 @@ Readonly::Array my @PROTECTED_PATHS => (
   'public',
   '_config.ts',
   'deno.json',
-  'src', # You might be insane...
   'src/_includes',
   'src/_data.yml',
   'src/components',
-  'src/posts',
   'src/privacy_policy',
   'src/index.page.tsx'
 );
@@ -175,7 +173,7 @@ sub cmd_add($type, $title, $opts) {
     if ($type eq 'post') {
         # Posts go under src/posts/<postname>.md
         $filename = "$slug.md";
-        $fullpath = "$dir/$filename";
+        $fullpath = "src/$dir/$filename";
     } elsif ($type eq 'page') {
         # Pages go under src/<pagename>.md
         $filename = "$slug.md";
