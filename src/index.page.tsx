@@ -1,4 +1,6 @@
 import { Data } from "lume/core/file.ts";
+import { PostTags } from "$urutau/components/shared/PostTags.tsx";
+import { PostAuthor } from "$urutau/components/shared/PostAuthor.tsx";
 
 export const title: string = "¡Bienvenid@!";
 export const layout: string = "layout.tsx";
@@ -40,18 +42,13 @@ export default (data: Lume.Data, _helpers: Lume.Helpers): JSX.Component => {
                             <h3>{post.description}</h3>
                             <hr />
                             <div class="margin-block">
-                                <chip>Autor: {post.author}</chip>
+                                Autor:&nbsp;
+                                <PostAuthor author={post.author} />
                             </div>
 
                             <div class="margin-block">
-                                {post.tags.map((
-                                    tag: string,
-                                    _index: number,
-                                ): JSX.Component => (
-                                    <chip class="info">{tag}</chip>
-                                ))}
+                                <PostTags tags={post.tags} />
                             </div>
-
                             <p>
                                 {truncate(post.content as string, 300)}
                             </p>
