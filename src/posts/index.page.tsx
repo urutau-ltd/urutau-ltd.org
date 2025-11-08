@@ -1,4 +1,5 @@
 import { Data } from "lume/core/file.ts";
+import { PostTags } from "$urutau/components/shared/PostTags.tsx";
 
 export const title: string = "Archivo de publicación";
 export const type: string = "page";
@@ -42,6 +43,9 @@ export default (data: Lume.Data): JSX.Component => {
                                         })}
                                     </time>
                                 )}
+                                <div class="container margin">
+                                    <PostTags tags={post.tags} />
+                                </div>
                                 <p class="bold">
                                     {post.description ||
                                         "Haz clic en el título para leer el artículo completo."}

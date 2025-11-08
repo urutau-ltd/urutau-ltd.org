@@ -7,7 +7,6 @@
 # === BUILD STAGE ===
 FROM docker.io/denoland/deno:alpine-2.5.6
 
-
 WORKDIR srv/
 
 COPY . .

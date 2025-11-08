@@ -18,6 +18,10 @@ export const fixOGPaths = async (
         `🔎 Scanning ${targetDir} for OpenGraph placeholders...`,
     );
 
+    // This acts as a flag, it's kinda bloat but prettier output was never
+    // never a sin in my book.
+    let foundMatch: boolean = false;
+
     try {
         for await (const entry of Deno.readDir(targetDir)) {
             if (!entry.isDirectory) continue;
@@ -27,30 +31,53 @@ export const fixOGPaths = async (
 
             try {
                 const text: string = await Deno.readTextFile(indexPath);
-
                 const replaced: string = patchOGPath(text, slug);
 
                 if (replaced !== text) {
                     await Deno.writeTextFile(indexPath, replaced);
                     console.info(
-                        `✅ OpenGraph path patched for post with slug: ${slug}`,
+                        `✅ Post with slug '${slug}' found/patched!`,
                     );
+                    foundMatch = true;
                 } else {
                     console.info(
-                        `➡️ Skipped post with slug: ${slug}`,
+                        `➡️ Skipped post with slug: ${slug} (already patched or no match found)`,
                     );
+                    foundMatch = true;
                 }
             } catch (err: unknown) {
                 if (err instanceof Deno.errors.NotFound) {
                     console.warn(
-                        `⚠️ ${indexPath} no such file or directory. Skipping...`,
+                        `⚠️ ${indexPath} no such file or directory. Skipping for recursive search...`,
                     );
+
+                    const categoryPath: string = join(targetDir, entry.name);
+
+                    console.info(
+                        `⬇️ Category directory found! Digging down to: ${entry.name}/...`,
+                    );
+
+                    await fixOGPaths(categoryPath);
+
+                    continue;
                 } else if (err instanceof Error) {
                     console.error(
                         `❌ Error reading ${indexPath}: ${err.message}. Skipping...`,
                     );
                 }
             }
+        }
+
+        // Increasing for & try/catch complexity as if TypeScript wasn't
+        // unbearably slow already...
+        if (!foundMatch && targetDir !== "./output/posts") {
+            console.warn(
+                `⚠️ No posts found at ${targetDir} level! Going up again...`,
+            );
+        } else {
+            console.info(
+                `✅ Finished scanning ${targetDir}...`,
+            );
         }
     } catch (err: unknown) {
         if (err instanceof Error) {

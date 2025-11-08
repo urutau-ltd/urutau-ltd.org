@@ -2,12 +2,14 @@ interface Props {
     url: string;
 }
 
+interface LinkItemProps {
+    currentUrl: string;
+    href: string;
+    text: string;
+}
+
 const LinkItem = (
-    { currentUrl, href, text }: {
-        currentUrl: string;
-        href: string;
-        text: string;
-    },
+    { currentUrl, href, text }: LinkItemProps,
 ): JSX.Component => {
     const isLinkActive = (current: string, target: string): boolean => {
         if (target === "/") {
@@ -30,7 +32,7 @@ const LinkItem = (
     const isActive: boolean = isLinkActive(currentUrl, href);
 
     const className: string = isActive ? "<button>" : "";
-    const linkElement = (
+    const linkElement: JSX.Component = (
         <a href={href} class={className}>
             {text}
         </a>

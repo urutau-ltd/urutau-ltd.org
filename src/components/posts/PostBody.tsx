@@ -1,3 +1,6 @@
+import { PostTags } from "$urutau/components/shared/PostTags.tsx";
+import { PostAuthor } from "../shared/PostAuthor.tsx";
+
 interface Props {
     title: string | undefined;
     description: string | undefined;
@@ -28,16 +31,12 @@ const PostBody = (
                 {description}
                 <br />
                 <b>Escrito por</b>: &nbsp;
-                <chip>
-                    {author}
-                </chip>
+                <PostAuthor author={author} />
                 &nbsp; el: &nbsp; {date.toLocaleDateString("es-MX", dateOpts)}
             </p>
             <div class="container">
                 Etiquetas:&nbsp;
-                {tags.map((tag: string, _index: number) => (
-                    <chip class="info">{tag}</chip>
-                ))}
+                <PostTags tags={tags} />
             </div>
             {children}
         </main>
