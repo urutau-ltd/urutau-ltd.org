@@ -22,269 +22,719 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 use v5.36;
+use feature qw( try );
+no warnings 'experimental::try';
 
 use utf8;
-use open qw( :std :encoding(UTF-8));
-use POSIX;
+use open qw(:std :encoding(UTF-8));
 
-use Getopt::Long;
+use POSIX qw(strftime);
+use Getopt::Long ();
 use Pod::Usage;
-
-use File::Basename;
-use File::Path qw(make_path remove_tree);
+use File::Basename qw(dirname basename);
 use File::Copy qw(move);
+use File::Path qw(make_path remove_tree);
+use File::Spec;
+use Cwd qw(abs_path);
+use JSON::PP ();
+use File::Find qw(find);
+use version;
 
-use Readonly;
-our $VERSION = version->declare("v1.0.0");
+our $VERSION = version->declare('v2.0.0');
+my $JSON = JSON::PP->new
+  ->ascii(0)
+  ->canonical(1)
+  ->allow_nonref(1)
+  ->utf8(0);
 
-Readonly::Array my @PROTECTED_PATHS => (
-  'node_modules',
-  'public',
-  '_config.ts',
-  'deno.json',
-  'src/_includes',
-  'src/_data.yml',
-  'src/components',
-  'src/privacy_policy',
-  'src/index.page.tsx'
+my @PROTECTED_PATHS = map { File::Spec->canonpath($_) } qw(
+  node_modules
+  public
+  _config.ts
+  deno.json
+  src/_includes
+  src/_data.yml
+  src/components
+  src/privacy_policy
+  src/index.page.tsx
 );
 
-Readonly::Scalar my $TRASH_DIR => '.nyc-trash';
+my %CONTENT_TYPES = (
+  post => {
+    dir    => [ 'src', 'posts' ],
+    layout => '_includes/layouts/post.tsx',
+    image  => '/posts/@/index.png',
+  },
+  page => {
+    dir    => ['src'],
+    layout => '_includes/layouts/layout.tsx',
+    image  => '/posts/@/index.png',
+  },
+);
 
-exit main( @ARGV );
+my @FRONTMATTER_ORDER = qw(
+  title
+  description
+  date
+  author
+  image
+  draft
+  tags
+  layout
+  slug
+  section
+  lastmod
+);
 
-sub main {
-  my $help = 0;
-  my $verbose = 0;
-  my $dry_run = 0;
-  
-  my $command = shift @_;
-  my @args = @_;
+use Readonly;
 
-  GetOptions(
-    'help|?' => \$help,
-    'verbose|v' => \$verbose,
-    'dry-run|d' => \$dry_run,
-    ) or pod2usage(2);
-  
-  if ($help || !$command) {
+Readonly::Scalar my $DEFAULT_AUTHOR      => 'FuncProgLinux';
+Readonly::Scalar my $DEFAULT_DESCRIPTION => 'Este artículo está en redacción temprana.';
+Readonly::Scalar my $DEFAULT_TRASH_DIR   => '.nyc-trash';
+
+exit main(@ARGV);
+
+sub main (@argv) {
+  my ($opts, $command, $cmd_args) = parse_global_cli(@argv);
+
+  if ($opts->{help}) {
+    if (my $section = $opts->{help_section}) {
+      pod2usage(-sections => $section, -exitval => 0);
+    }
     pod2usage(-verbose => 2, -exitval => 0);
   }
-  
-  my $opts = {
-    help => $help,
-    verbose => $verbose,
-    dry_run => $dry_run,
-  };
-  
-  my $exit_code = 1;
-  
-  if ($command eq 'add') {
-    my $type = shift @args;
-    if (!$type) {
-      plog("Error: Either 'post' or 'page' MUST be provided for 'add' option!");
-      pod2usage(-sections => 'add', -exitval => 1);
-    }
-    
-    my $title = join(' ', @args);
-    
-    if (!$title) {
-      plog("Error: Missing title for 'add'");
-      pod2usage(-sections => 'add', -exitval => 1);
-    }
 
-    $exit_code = cmd_add($type, $title, $opts);
-  } elsif ($command eq 'rm') {
-    my $path = shift @args;
-    if (!$path) {
-      plog("Error: A path MUST be provied for 'rm' option!");
-      pod2usage(-sections => 'rm', -exitval => 1);
-    }
-  } else {
-     plog("Error: Unknown command '$command' was provided!");
-     pod2usage(-verbose => 1, -exitval => 1);
+  unless ($command) {
+    pod2usage(-verbose => 1, -exitval => 1);
+  }
+
+  my $env = build_environment($opts->{root});
+  $opts->{env} = $env;
+
+  my %dispatch = (
+    add     => \&cmd_add,
+    rm      => \&cmd_rm,
+    list    => \&cmd_list,
+    draft   => \&cmd_draft,
+    publish => \&cmd_publish,
+    info    => \&cmd_info,
+  );
+
+  my $handler = $dispatch{$command}
+    or die "Unknown command '$command'.";
+
+  my $exit_code = 1;
+  try {
+    $exit_code = $handler->($cmd_args, $opts);
+  } catch ($err) {
+    chomp $err;
+    plog("Error: $err");
+    $exit_code = 1;
   }
 
   return $exit_code;
 }
 
-sub plog($msg) {
-  my $timestamp = strftime("%Y-%m-%d %H:%M:%S", localtime);
+sub parse_global_cli (@argv) {
+  my @raw = @argv;
+  my %opts = (
+    dry_run => 0,
+    verbose => 0,
+    yes     => 0,
+    root    => '.',
+  );
+
+  my $parser = Getopt::Long::Parser->new(
+    config => [qw(bundling no_ignore_case pass_through)],
+  );
+
+  $parser->getoptionsfromarray(
+    \@argv,
+    'help|h'    => \$opts{help},
+    'verbose|v' => \$opts{verbose},
+    'dry-run|d' => \$opts{dry_run},
+    'root|r=s'  => \$opts{root},
+    'yes|y|force' => \$opts{yes},
+  ) or pod2usage(2);
+
+  my $command = shift @argv;
+  if ($opts{help}) {
+    $opts{help_section} = extract_subcommand_help_section(\@raw, $command);
+  }
+
+  return (\%opts, $command, \@argv);
+}
+
+sub extract_subcommand_help_section ($raw, $command) {
+  return unless defined $command;
+  my $seen = 0;
+  for my $token (@$raw) {
+    if (!$seen) {
+      $seen = 1 if $token eq $command;
+      next;
+    }
+    return $command if is_help_token($token);
+  }
+  return;
+}
+
+sub is_help_token ($token) {
+  return 0 unless defined $token;
+  return ($token eq '--help' || $token eq '-h' || $token eq '-?');
+}
+
+sub build_environment ($root) {
+  my $abs_root = abs_path($root)
+    or die "Unable to resolve project root '$root'.";
+
+  return {
+    root      => $abs_root,
+    trash_dir => File::Spec->catdir($abs_root, $DEFAULT_TRASH_DIR),
+  };
+}
+
+sub cmd_add ($argv, $opts) {
+  my %params = (
+    type        => undef,
+    title       => undef,
+    description => $DEFAULT_DESCRIPTION,
+    date        => undef,
+    author      => $DEFAULT_AUTHOR,
+    draft       => 1,
+    tags        => [],
+    slug        => undef,
+    section     => undef,
+    layout      => undef,
+    image       => undef,
+  );
+
+  my @tag_opts;
+  my $parser = Getopt::Long::Parser->new(config => [qw(bundling no_ignore_case)]);
+  $parser->getoptionsfromarray(
+    $argv,
+    'type|t=s'        => \$params{type},
+    'title|T=s'       => \$params{title},
+    'description|desc=s' => \$params{description},
+    'date=s'          => \$params{date},
+    'author=s'        => \$params{author},
+    'slug=s'          => \$params{slug},
+    'tag=s@'          => \@tag_opts,
+    'tags=s'          => \@tag_opts,
+    'draft!'          => \$params{draft},
+    'section=s'       => \$params{section},
+    'layout=s'        => \$params{layout},
+    'image=s'         => \$params{image},
+  ) or die "Invalid options for add.";
+
+  $params{tags} = parse_tag_args(@tag_opts);
+
+  my @positional = @$argv;
+  $params{type} //= shift @positional if @positional;
+  $params{type} //= 'post';
+  $params{title} //= join(' ', @positional);
+
+  die "Missing content type for add."
+    unless exists $CONTENT_TYPES{ $params{type} };
+  die "Missing title for add." unless defined $params{title} && length $params{title};
+
+  my $content_spec = $CONTENT_TYPES{ $params{type} };
+  my $slug  = $params{slug} // get_slug($params{title});
+  my $date  = $params{date} // strftime('%Y-%m-%d', localtime);
+  my $layout = $params{layout} // $content_spec->{layout};
+  my $image  = $params{image}  // $content_spec->{image};
+
+  die "Unable to derive slug." unless length $slug;
+
+  my @section_parts = normalize_section($params{section});
+  my $relative_dir = File::Spec->catdir(@{ $content_spec->{dir} }, @section_parts);
+  my $filename     = "$slug.md";
+  my $relative_path = File::Spec->catfile($relative_dir, $filename);
+  my ($target_path, $rel_path) = resolve_and_guard($opts->{env}, $relative_path);
+
+  die "File already exists at '$rel_path'." if -e $target_path;
+  die "Path '$rel_path' is protected." if is_protected_path($rel_path);
+
+  verbose_log($opts, "Creating '$rel_path'.");
+
+  my $frontmatter = {
+    title       => $params{title},
+    description => $params{description},
+    date        => $date,
+    author      => $params{author},
+    image       => $image,
+    draft       => $params{draft} ? 'true' : 'false',
+    tags        => $params{tags},
+    layout      => $layout,
+    slug        => $slug,
+  };
+
+  $frontmatter->{section} = join('/', @section_parts) if @section_parts;
+
+  my $body = sprintf("# %s\n\n", $params{title});
+
+  if ($opts->{dry_run}) {
+    plog("Dry-Run: Would create '$rel_path'.");
+    plog(serialize_frontmatter($frontmatter));
+  } else {
+    make_path(dirname($target_path)) unless -d dirname($target_path);
+    write_markdown_file($target_path, $frontmatter, $body);
+    plog("Created '$rel_path'.");
+  }
+
+  return 0;
+}
+
+sub cmd_rm ($argv, $opts) {
+  my %params = (
+    permanent => 0,
+    trash     => undef,
+  );
+
+  my $parser = Getopt::Long::Parser->new(config => [qw(bundling no_ignore_case)]);
+  $parser->getoptionsfromarray(
+    $argv,
+    'permanent'   => \$params{permanent},
+    'trash-dir=s' => \$params{trash},
+  ) or die "Invalid options for rm.";
+
+  my $path = shift @$argv // die "Missing path for rm.";
+  my ($abs_path, $rel_path) = resolve_and_guard($opts->{env}, $path);
+
+  die "No such file or directory '$rel_path'." unless -e $abs_path;
+  die "'$rel_path' is protected and cannot be removed."
+    if is_protected_path($rel_path);
+
+  if ($opts->{dry_run}) {
+    plog("Dry-Run: Would remove '$rel_path'.");
+    return 0;
+  }
+
+  my $action = $params{permanent} ? 'permanently delete' : 'move to trash';
+  return 0 unless confirm_action($opts, "Confirm to $action '$rel_path'?");
+
+  if ($params{permanent}) {
+    remove_path($abs_path, $rel_path);
+    plog("Removed '$rel_path'.");
+  } else {
+    my $trash_dir = defined $params{trash}
+      ? File::Spec->rel2abs($params{trash}, $opts->{env}{root})
+      : $opts->{env}{trash_dir};
+    make_path($trash_dir) unless -d $trash_dir;
+    my $timestamp = strftime('%Y%m%d_%H%M%S', localtime);
+    my $dest = File::Spec->catfile(
+      $trash_dir,
+      sprintf('%s.%s', basename($rel_path), $timestamp),
+    );
+    move($abs_path, $dest)
+      or die "Unable to move '$rel_path' to trash: $!";
+    plog("Moved '$rel_path' to trash at '$dest'.");
+  }
+
+  return 0;
+}
+
+sub cmd_list ($argv, $opts) {
+  my %params = (
+    type      => 'post',
+    format    => 'table',
+    section   => undef,
+    limit     => undef,
+    drafts    => 0,
+    published => 0,
+  );
+
+  my $parser = Getopt::Long::Parser->new(config => [qw(bundling no_ignore_case)]);
+  $parser->getoptionsfromarray(
+    $argv,
+    'type|t=s'    => \$params{type},
+    'format=s'    => \$params{format},
+    'section=s'   => \$params{section},
+    'limit=i'     => \$params{limit},
+    'drafts'      => \$params{drafts},
+    'published'   => \$params{published},
+  ) or die "Invalid options for list.";
+
+  my @types =
+    $params{type} eq 'all'
+    ? sort keys %CONTENT_TYPES
+    : ($params{type});
+
+  for my $type (@types) {
+    die "Unknown content type '$type'."
+      unless exists $CONTENT_TYPES{$type};
+  }
+
+  my @entries;
+  for my $type (@types) {
+    push @entries, @{ gather_entries_for_type($type, \%params, $opts) };
+  }
+
+  if ($params{drafts}) {
+    @entries = grep { is_truthy($_->{draft}) } @entries;
+  } elsif ($params{published}) {
+    @entries = grep { !is_truthy($_->{draft}) } @entries;
+  }
+
+  @entries = sort {
+    ($b->{date} // '') cmp ($a->{date} // '')
+      || $a->{path} cmp $b->{path}
+  } @entries;
+
+  if (defined $params{limit} && $params{limit} > 0 && @entries > $params{limit}) {
+    @entries = @entries[ 0 .. ($params{limit} - 1) ];
+  }
+
+  if ($params{format} eq 'json') {
+    say $JSON->encode(\@entries);
+  } else {
+    printf "%-8s %-10s %-12s %-40s %s\n",
+      'TYPE', 'STATUS', 'DATE', 'TITLE', 'PATH';
+    for my $entry (@entries) {
+      printf "%-8s %-10s %-12s %-40s %s\n",
+        $entry->{type},
+        is_truthy($entry->{draft}) ? 'draft' : 'published',
+        $entry->{date} // '',
+        truncate_string($entry->{title} // '', 38),
+        $entry->{path};
+    }
+  }
+
+  return 0;
+}
+
+sub cmd_info ($argv, $opts) {
+  my %params = ( json => 0 );
+
+  my $parser = Getopt::Long::Parser->new(config => [qw(bundling no_ignore_case)]);
+  $parser->getoptionsfromarray(
+    $argv,
+    'json' => \$params{json},
+  ) or die "Invalid options for info.";
+
+  my $path = shift @$argv // die "Missing path for info.";
+  my ($abs_path, $rel_path) = resolve_and_guard($opts->{env}, $path);
+  die "No such file '$rel_path'." unless -e $abs_path;
+
+  my ($meta, $body) = read_markdown_file($abs_path);
+  my $info = {
+    path     => $rel_path,
+    metadata => $meta,
+    words    => count_words($body),
+    bytes    => -s $abs_path,
+  };
+
+  if ($params{json}) {
+    say $JSON->encode($info);
+  } else {
+    plog("Path: $rel_path");
+    for my $key (sort keys %{ $info->{metadata} }) {
+      my $value = $info->{metadata}{$key};
+      if (ref $value eq 'ARRAY') {
+        plog(sprintf('%s: %s', ucfirst($key), join(', ', @{ $value }))); 
+      } else {
+        plog(sprintf('%s: %s', ucfirst($key), defined $value ? $value : ''));
+      }
+    }
+    plog("Words: $info->{words}");
+    plog("Bytes: $info->{bytes}");
+  }
+
+  return 0;
+}
+
+sub cmd_draft ($argv, $opts) {
+  return cmd_set_draft_flag($argv, $opts, 1);
+}
+
+sub cmd_publish ($argv, $opts) {
+  return cmd_set_draft_flag($argv, $opts, 0);
+}
+
+sub cmd_set_draft_flag ($argv, $opts, $value) {
+  my $path = shift @$argv // die "Missing path.";
+
+  return update_markdown_file($path, $opts, sub ($meta, $body, $rel_path) {
+    my $current = is_truthy($meta->{draft}) ? 1 : 0;
+    my $target  = $value ? 1 : 0;
+    return 0 if $current == $target;
+    $meta->{draft}  = $target ? 'true' : 'false';
+    $meta->{lastmod} = strftime('%Y-%m-%d', localtime);
+    return 1;
+  });
+}
+
+sub gather_entries_for_type ($type, $params, $opts) {
+  my $spec = $CONTENT_TYPES{$type};
+  my @section_parts = normalize_section($params->{section});
+  my $relative_root = File::Spec->catdir(@{ $spec->{dir} }, @section_parts);
+  my $scan_dir = File::Spec->catdir($opts->{env}{root}, $relative_root);
+  return [] unless -d $scan_dir;
+
+  my @entries;
+  find(
+    {
+      wanted => sub {
+        return unless -f $_;
+        return unless $_ =~ /\.md$/i;
+        my $abs = $File::Find::name;
+        my $rel = File::Spec->abs2rel($abs, $opts->{env}{root});
+        my $data = eval { [ read_markdown_file($abs) ] };
+        if (!$data) {
+          verbose_log($opts, "Skipping '$rel': $@" );
+          return;
+        }
+        my ($meta, undef) = @$data;
+        my $date = $meta->{date} // format_timestamp( (stat($abs))[9] );
+        push @entries, {
+          type  => $type,
+          path  => $rel,
+          title => $meta->{title} // basename($abs),
+          date  => $date,
+          draft => $meta->{draft} // 'false',
+          tags  => $meta->{tags} // [],
+        };
+      },
+      no_chdir => 1,
+    },
+    $scan_dir,
+  );
+
+  return \@entries;
+}
+
+sub resolve_and_guard ($env, $path) {
+  die 'Missing path.' unless defined $path && length $path;
+  my $abs = File::Spec->rel2abs($path, $env->{root});
+  $abs = File::Spec->canonpath($abs);
+  my $root = $env->{root};
+  my $prefix = $root;
+  $prefix .= '/' unless $prefix =~ m{/$};
+  if ($abs ne $root && index($abs, $prefix) != 0) {
+    die "Path '$path' escapes workspace root.";
+  }
+  my $rel = File::Spec->abs2rel($abs, $root);
+  return ($abs, File::Spec->canonpath($rel));
+}
+
+sub is_protected_path ($rel_path) {
+  my $normalized = File::Spec->canonpath($rel_path // '');
+  return 1 if $normalized =~ /\.\./;
+  for my $protected (@PROTECTED_PATHS) {
+    return 1 if $normalized eq $protected;
+    return 1 if index($normalized, "$protected/") == 0;
+  }
+  return 0;
+}
+
+sub remove_path ($abs_path, $rel_path) {
+  if (-d $abs_path) {
+    my $errors = [];
+    remove_tree($abs_path, { error => $errors });
+    if (@$errors) {
+      my $msg = join '; ', map {
+        my $where = $_->{file} // $_->{path} // $rel_path;
+        sprintf('%s: %s', $where, $_->{message});
+      } @$errors;
+      die "Failed to remove '$rel_path': $msg";
+    }
+  } else {
+    unlink $abs_path or die "Failed to remove '$rel_path': $!";
+  }
+}
+
+sub confirm_action ($opts, $message) {
+  return 1 if $opts->{yes};
+  print "$message (y/N): ";
+  my $answer = <STDIN>;
+  return defined $answer && $answer =~ /^[Yy]/;
+}
+
+sub plog ($msg) {
+  my $timestamp = strftime('%Y-%m-%d %H:%M:%S', localtime);
   say "[NYC] - [$timestamp]: $msg";
 }
 
-sub is_protected_path($path) {
-  my $normalized_path = $path;
-  $normalized_path =~ s/^\.\?//;
-
-  for my $protected (@PROTECTED_PATHS) {
-    if ($normalized_path eq $protected || $normalized_path =~ /^\Q$protected\E[\/]/) {
-      return 1;
-    }
-  }
-  
-  if ($normalized_path =~ /\.\./ || $normalized_path =~ /^\//) {
-    plog("Warning: '$path' contains '..' or is an absolute path. Operation forbidden.");
-    return 1;
-  } 
-    return 0;
+sub verbose_log ($opts, $msg) {
+  plog($msg) if $opts->{verbose};
 }
 
-sub prompt_for_confirmation($message) {
-    print "$message (Y/n): ";
-    my $answer = <STDIN>;
-    chomp $answer;
-    return $answer =~ /^[Yy]$/ ? 1 : 0;
-}
-
-sub get_slug($title) {
-  my $slug = lc($title);
+sub get_slug ($title) {
+  my $slug = lc $title;
+  $slug =~ s/[^a-z0-9\s-]+//g;
   $slug =~ s/\s+/-/g;
-  $slug =~ s/[^a-z0-9-]+//g;
   $slug =~ s/-+/-/g;
   $slug =~ s/^-+//;
-  $slug =~ s/-+$//; 
+  $slug =~ s/-+$//;
   return $slug;
 }
 
-sub cmd_add($type, $title, $opts) {
-    my $dry_run = $opts->{dry_run};
-    my $verbose = $opts->{verbose};
-
-    plog("Adding a new: $type") if $verbose;
-
-    my ($dir, $layout);
-
-    if ($type eq 'post') {
-        $dir = 'posts';
-        $layout = 'post.tsx';
-    } elsif ($type eq 'page') {
-        $dir = '.';
-        $layout = 'layout.tsx';
-    } else {
-        plog("Error: Invalid content type: '$type'. Use 'post' or 'page'.");
-        return 1;
-    }
-
-    my $slug = get_slug($title);
-    my $filename;
-    my $fullpath;
-
-    if ($type eq 'post') {
-        # Posts go under src/posts/<postname>.md
-        $filename = "$slug.md";
-        $fullpath = "src/$dir/$filename";
-    } elsif ($type eq 'page') {
-        # Pages go under src/<pagename>.md
-        $filename = "$slug.md";
-        $fullpath = "$dir/$filename";
-    }
-
-    if (-e $fullpath) {
-        plog("Error: File already exists at: '$fullpath'.");
-        return 1;
-    }
-    
-    if (is_protected_path($fullpath)) {
-      plog("Error: '$fullpath' is in the list of protected paths!");
-      return 1;
-    }
-
-    plog("Creating file: $fullpath") if $verbose;
-    
-    my $date = strftime("%Y-%m-%d", localtime);
-    my $content = <<'EOF';
----
-title: "$title"
-description: "Include a description here."
-date: "$date"
-author: "YourName"
-image: "/posts/@/index.png"
-draft: true
-tags:
-    - Example
-layout: "_includes/layouts/$layout"
----
-
-# $title
-
-EOF
-    $content =~ s/\$title/$title/g;
-    $content =~ s/\$date/$date/g;
-    $content =~ s/\$layout/$layout/g;
-
-
-    if ($dry_run) {
-        plog("Dry-Run: Should create '$fullpath' with content:\n$content");
-    } else {
-        make_path(dirname($fullpath)) unless -d dirname($fullpath);
-        
-        open(my $fh, '>', $fullpath) or do {
-            plog("Error: Unable to create '$fullpath': $!");
-            return 1;
-        };
-        print $fh $content;
-        close($fh);
-        plog("Success: Created a new $type at '$fullpath'!");
-    }
-
-    return 0;
+sub normalize_section ($section) {
+  return () unless defined $section && length $section;
+  my @parts = grep { length } split m{/+}, $section;
+  return map { get_slug($_) } @parts;
 }
 
-sub cmd_rm($path, $opts) {
-    my $dry_run = $opts->{dry_run};
-    my $verbose = $opts->{verbose};
-
-    plog("Deleting: $path") if $verbose;
-
-    my $fullpath = $path;
-
-    unless (-e $fullpath) {
-        plog("Error: '$fullpath' no such file or directory.");
-        return 1;
+sub parse_tag_args (@args) {
+  my %seen;
+  my @tags;
+  for my $entry (@args) {
+    next unless defined $entry;
+    my @candidates = split /,/, $entry;
+    for my $tag (@candidates) {
+      $tag =~ s/^\s+//;
+      $tag =~ s/\s+$//;
+      next unless length $tag;
+      push @tags, $tag unless $seen{ lc $tag }++;
     }
-    
-    if (is_protected_path($fullpath)) {
-      plog("Error: '$fullpath' is a protected node and cannot be deleted!");
-      return 1;
-    }
-    
-    unless ($dry_run) {
-      unless (prompt_for_confirmation("Are you sure you wish to logically remove: '$fullpath'?")) {
-        plog("Cancelled.");
-        return 0;
+  }
+  return \@tags;
+}
+
+sub read_markdown_file ($path) {
+  open my $fh, '<', $path or die "Unable to read '$path': $!";
+  local $/ = undef;
+  my $raw = <$fh> // '';
+  close $fh;
+
+  if ($raw !~ /^---\s*\n(.*?)\n---\s*\n?(.*)\z/s) {
+    die "File '$path' is missing YAML frontmatter.";
+  }
+
+  my ($front, $body) = ($1, $2);
+  my $meta = parse_frontmatter($front);
+  return ($meta, $body);
+}
+
+sub write_markdown_file ($path, $meta, $body) {
+  my $front = serialize_frontmatter($meta);
+  open my $fh, '>', $path or die "Unable to write '$path': $!";
+  print {$fh} $front;
+  print {$fh} $body if defined $body;
+  close $fh;
+}
+
+sub serialize_frontmatter ($meta) {
+  my @lines = ('---');
+  my %copy = %$meta;
+
+  for my $key (@FRONTMATTER_ORDER) {
+    next unless exists $copy{$key};
+    push @lines, @{ format_meta_lines($key, delete $copy{$key}) };
+  }
+
+  for my $key (sort keys %copy) {
+    push @lines, @{ format_meta_lines($key, $copy{$key}) };
+  }
+
+  push @lines, '---', '';
+  return join("\n", @lines);
+}
+
+sub format_meta_lines ($key, $value) {
+  if (ref $value eq 'ARRAY') {
+    return [ "$key: []" ] unless @$value;
+    return [ "$key:", map { '  - ' . yaml_scalar($_) } @$value ];
+  }
+  return [ sprintf('%s: %s', $key, yaml_scalar($value)) ];
+}
+
+sub yaml_scalar ($value) {
+  return '""' unless defined $value && length $value;
+  my $lc = lc $value;
+  return 'true'  if $lc eq 'true';
+  return 'false' if $lc eq 'false';
+  my $escaped = $value;
+  $escaped =~ s/"/\\"/g;
+  return '"' . $escaped . '"';
+}
+
+sub parse_frontmatter ($front_text) {
+  my %meta;
+  my $current_key;
+
+  for my $line (split /\n/, $front_text) {
+    $line =~ s/\r$//;
+    next if $line =~ /^\s*#/;
+    if ($line =~ /^\s*([A-Za-z0-9_]+)\s*:\s*(.*)$/) {
+      my ($key, $value) = ($1, $2 // '');
+      if ($value eq '[]') {
+        $meta{$key} = [];
+        $current_key = undef;
+        next;
       }
+      if ($value =~ /\S/) {
+        $meta{$key} = parse_front_value($value);
+        $current_key = undef;
+      } else {
+        $meta{$key} = [];
+        $current_key = $key;
+      }
+    } elsif ($line =~ /^\s*-\s*(.+)$/ && defined $current_key) {
+      push @{ $meta{$current_key} }, parse_front_value($1);
     }
+  }
 
-    my $trash_path = $TRASH_DIR;
-    unless (-d $trash_path) {
-      plog("Creating trash directory: $trash_path") if $verbose;
-      make_path($trash_path) or do {
-        plog("Error: Unable to create trash directory: '$trash_path': $!");
-        return 1;
-      };
-    }
+  return \%meta;
+}
 
-    my $timestamp = strftime("%Y%m%d_%H%M%S", localtime);
-    my $basename = basename($fullpath);
-    my $dest_path = "$trash_path/$basename.$timestamp";
+sub parse_front_value ($value) {
+  $value =~ s/^\s+//;
+  $value =~ s/\s+$//;
+  if ($value =~ /^"(.*)"$/) {
+    ($value = $1) =~ s/\\"/"/g;
+  } elsif ($value =~ /^'(.*)'$/) {
+    ($value = $1) =~ s/\\'/'/g;
+  }
+  my $lc = lc $value;
+  return 'true'  if $lc eq 'true';
+  return 'false' if $lc eq 'false';
+  return $value;
+}
 
-    plog("Moving '$fullpath' to '$dest_path'") if $verbose;
+sub update_markdown_file ($path, $opts, $mutator) {
+  my ($abs_path, $rel_path) = resolve_and_guard($opts->{env}, $path);
+  die "No such file '$rel_path'." unless -f $abs_path;
+  die "'$rel_path' is protected." if is_protected_path($rel_path);
 
-    if ($dry_run) {
-        plog("Dry-Run: Should move (backup) '$fullpath' to '$dest_path'.");
-        plog("Dry-Run: Original path should be deleted.");
-    } else {
-        if (move $fullpath, $dest_path) {
-            plog("Success: Deleted file to: '$dest_path'.");
-            plog("To undo the deletion move '$dest_path' back to '$fullpath'.");
-        } else {
-            plog("Error: Unable to logically delete '$fullpath': $!");
-            return 1;
-        }
-    }
-
+  my ($meta, $body) = read_markdown_file($abs_path);
+  my $changed = $mutator->($meta, $body, $rel_path) ? 1 : 0;
+  unless ($changed) {
+    plog("No changes required for '$rel_path'.");
     return 0;
+  }
+
+  if ($opts->{dry_run}) {
+    plog("Dry-Run: Would update '$rel_path'.");
+    return 0;
+  }
+
+  write_markdown_file($abs_path, $meta, $body);
+  plog("Updated '$rel_path'.");
+  return 0;
+}
+
+sub truncate_string ($value, $width) {
+  $value //= '';
+  return $value if length($value) <= $width;
+  my $ellipsis = '...';
+  return substr($value, 0, $width) if $width <= length $ellipsis;
+  return substr($value, 0, $width - length $ellipsis) . $ellipsis;
+}
+
+sub count_words ($text) {
+  return 0 unless defined $text;
+  my @words = ($text =~ /\b[^\s]+\b/g);
+  return scalar @words;
+}
+
+sub format_timestamp ($epoch) {
+  return '' unless defined $epoch;
+  return strftime('%Y-%m-%d', localtime $epoch);
+}
+
+sub is_truthy ($value) {
+  return 0 unless defined $value;
+  return $value =~ /^(?:1|true|yes)$/i ? 1 : 0;
 }
 
 __END__
@@ -293,17 +743,11 @@ __END__
 
 =head1 NAME
 
-nyc - Very simple CLI tool to manage a Lume markdown blog!
+nyc - Small Perl helper inspired by the Hugo CLI.
 
 =head1 SYNOPSIS
 
 B<nyc> [OPTIONS] I<COMMAND> [ARGS]
-
-COMMANDS:
-
-add <type> <title ...>    # Creates a new post/page.
-
-rm <path>                 # Deletes a project node.
 
 =head1 OPTIONS
 
@@ -315,11 +759,19 @@ Show this help screen.
 
 =item B<-v, --verbose>
 
-Shows detailed run information
+Print verbose log messages during execution.
 
 =item B<-d, --dry-run>
 
-Shows what 'should' be done without mutating the project.
+Show what would be done without mutating the project tree.
+
+=item B<-r, --root PATH>
+
+Run nyc targeting another root directory. Defaults to the current working directory.
+
+=item B<-y, --yes>
+
+Answer "yes" to confirmation prompts automatically (also available as C<--force>).
 
 =back
 
@@ -327,62 +779,244 @@ Shows what 'should' be done without mutating the project.
 
 =head2 add
 
-Creates a new Markdown node with a pre-made I<frontmatter>.
+Create a new Markdown node with pre-populated front matter.
 
-Usage: B<nyc add> I<type> I<title>
+Usage: B<nyc add> [OPTIONS] [type] [title]
 
-=over 8
+Options:
 
-=item I<type>
+=over 4
 
-'post' (inside src/posts/) or 'page' (inside src/)
+=item B<--type>, B<-t>
 
-=item I<title>
+Content type (C<post> or C<page>). Defaults to C<post>.
 
-The title used for the I<frontmatter> and I<slug> generation (the filename)
+=item B<--title>, B<-T>
+
+Explicit title. If omitted nyc uses the remaining positional arguments.
+
+=item B<--slug>
+
+Override the generated slug / filename.
+
+=item B<--date>
+
+Front matter date (defaults to today).
+
+=item B<--description>, B<--author>, B<--layout>, B<--image>
+
+Override the default metadata values.
+
+=item B<--section>
+
+Create the entry inside a nested section (e.g. C<guides/perl>).
+
+=item B<--tag>, B<--tags>
+
+Add tags. Repeat the flag or use comma separated values.
+
+=item B<--draft!>
+
+Mark the new content as a draft (enabled by default). Use C<--no-draft> to create a published post.
 
 =back
-
-Example: B<nyc add post> Guix Rocks
 
 =head2 rm
 
-Deletes a file or directory in the project. This is a dangerous command!
+Delete files or directories with a reversible trash bin.
 
-To reduce the risk, this command comes with some security checks and bounds
-before doing the operations:
+Usage: B<nyc rm> [--permanent] [--trash-dir DIR] PATH
 
-=over 1
+=head2 list
 
-=item Asks for B<confirmaton> before deletion
+List blog entries (posts or pages) in a tabular or JSON format.
 
-=item Creates a B<trashbin-like> directory and moves the 'deleted' files there.
+Usage: B<nyc list> [--type TYPE|all] [--section SECTION] [--drafts|--published] [--limit N] [--format table|json]
 
-=item B<Blocks> deletion of key components of the site.
+=head2 draft / publish
 
-=back
+Toggle the draft flag in the front matter of an entry.
 
-Uso: B<nyc rm> I<path>
+Usage: B<nyc draft> PATH
 
-=over 8
+Usage: B<nyc publish> PATH
 
-=item I<path>
+=head2 info
 
-Relative path to the file or directory you wish to delete.
+Show metadata and statistics for a Markdown file.
 
-=back
-
-Ejemplo: B<nyc rm> posts/bad-post.md
+Usage: B<nyc info> [--json] PATH
 
 =head1 DESCRIPTION
 
-nyc is a CLI tool written in Perl for GNU Guix. It's meant to live
-inside the Guix shell environment of this project and should not be
-used as a tool to manage B<all> Lume sites.
+nyc is a Perl CLI that mimics a subset of Hugo's CLI commands while
+remaining small enough to ship inside this repository. It can scaffold
+new posts, inspect metadata, list drafts, and toggle publication state without
+touching other parts of the project.
 
-The tool is inspired by the hugo cli, although it's much simpler since the goal
-is not to replace hugo, just to provide an easy way to add new blog posts
-with the templating I need.
+However, this tool is made SPECIFICALLY for this webpage source code, using it
+outside the repository or inside your own Lume projects is heavily discouraged.
+
+=head1 INTERNALS
+
+I wasn't able to find an "official" way to do Perl docstrings and I don't 
+really believe heredocs are the answer to this particular problem. This section
+covers the documentation for the internal subroutines used inside this program.
+
+Mind you, this hardly counts as extensive documentation but it should give some 
+context in case you want to learn how to write Perl CLIs, modify this one or 
+even port it to another language. Although, if you are looking for a more 
+complete solution, I recommend checking out Hugo itself or even better, 
+contribute to the Lume CLI directly if it's within your possibilities.
+
+=over 4
+
+=item B<parse_global_cli>
+
+Normalizes shared CLI flags early so subcommands only worry about their domain concerns.
+
+=item B<extract_subcommand_help_section>
+
+Figures out whether help was asked for a specific verb so docs stay 
+focused instead of overwhelming the user with the complete documentation POD
+of this tool.
+
+=item B<is_help_token>
+
+Treats the many spellings of "help" the same. Or at least it tries to. I really
+didn't do much testing whatsoever.
+
+=item B<build_environment>
+
+Resolves project boundaries up front so file operations never wander 
+outside the intended file tree. This comes with no warranty inside the guix
+shell as I think it can mutate other directories if shared by mistake.
+
+=item B<cmd_add>
+
+Bootstraps new content with curated defaults. By curated I mean opinionated
+and specifically for this website project.
+
+=item B<cmd_rm>
+
+Provides reversible cleanup so experimentation feels safe even when deleting whole trees.
+
+=item B<cmd_list>
+
+Curates a manifest of entries so you never imagine if all you know are 
+what you're told to care about.
+
+...but after all this time you find your faith has faded...
+
+=item B<cmd_info>
+
+Gives a quick health check for any Markdown node without opening an editor.
+
+=item B<cmd_draft>
+
+Allows the editor/writer to mark work-in-progress posts without remembering 
+exact front matter values.
+
+=item B<cmd_publish>
+
+Graduates draft content via the same guard rails to avoid drift between states.
+
+=item B<cmd_set_draft_flag>
+
+Centralizes the draft toggle logic so both verbs stay consistent and timestamp updates happen in one place.
+
+=item B<gather_entries_for_type>
+
+Walks the content tree to provide higher-level commands with a reliable catalog of files.
+
+=item B<resolve_and_guard>
+
+Guarantees that every requested path stays under the workspace root before any IO occurs.
+
+=item B<is_protected_path>
+
+Shields critical directories and config files from accidental edits or deletions.
+
+=item B<remove_path>
+
+Encapsulates destructive actions so they respect trash bins and report failures clearly.
+
+=item B<confirm_action>
+
+Introduces an intentional pause before risky changes unless the caller explicitly bypasses it.
+
+=item B<plog>
+
+Emits timestamped messages so logs can be audited later.
+
+=item B<verbose_log>
+
+Keeps the default output calm while still giving curious users more insight on demand.
+
+=item B<get_slug>
+
+Transforms titles into predictable filenames, keeping URLs human-friendly.
+
+=item B<normalize_section>
+
+Ensures nested sections share the same slug rules so directory layouts stay tidy.
+
+=item B<parse_tag_args>
+
+Deduplicates tag inputs coming from multiple CLI flags to avoid noisy metadata.
+
+=item B<read_markdown_file>
+
+Parses front matter once so the rest of the tool can operate on structured data 
+instead of ad-hoc regexes. (Whatever that means)
+
+=item B<write_markdown_file>
+
+Writes Markdown and YAML in a stable order so diffs highlight meaningful changes.
+
+=item B<serialize_frontmatter>
+
+Preserves preferred field ordering to keep generated files approachable for editors.
+
+=item B<format_meta_lines>
+
+Keeps YAML formatting uniform across scalars and arrays for easier reviews.
+
+=item B<yaml_scalar>
+
+Quotes or unquotes metadata so YAML stays valid without becoming noisy.
+
+=item B<parse_frontmatter>
+
+Translates the YAML header back into Perl structures so commands can reason 
+about metadata safely.
+
+=item B<parse_front_value>
+
+Normalizes individual YAML values (especially booleans) to minimize surprises later.
+
+=item B<update_markdown_file>
+
+Wraps read/modify/write operations so guard rails like dry-run and 
+protected paths get enforced automatically.
+
+=item B<truncate_string>
+
+Keeps table output readable on narrower terminals by clipping long titles gracefully.
+
+=item B<count_words>
+
+Provides a fast approximation of article length for triaging writing effort.
+
+=item B<format_timestamp>
+
+Backfills missing dates with filesystem metadata so listings remain sortable.
+
+=item B<is_truthy>
+
+Interprets assorted YAML truthy values consistently for draft toggles and filters.
+
+=back
 
 =head1 BUGS
 
@@ -406,4 +1040,3 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 =cut
-
