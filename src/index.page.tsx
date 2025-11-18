@@ -50,7 +50,8 @@ export default (data: Lume.Data, _helpers: Lume.Helpers): JSX.Component => {
                                 <PostTags tags={post.tags} />
                             </div>
                             <p>
-                                {truncate(post.content as string, 300)}
+                                {post.sample ||
+                                    truncate(post.content as string, 300)}
                             </p>
                             <a href={post.url}>
                                 Leer más...
