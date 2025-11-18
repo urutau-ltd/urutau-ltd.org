@@ -5,6 +5,9 @@
         "highlight.js": "npm:highlight.js@^11.11.1",
         "lume/": "https://cdn.jsdelivr.net/gh/lumeland/lume@3.1.1/",
         "lume/jsx-runtime": "https://cdn.jsdelivr.net/gh/oscarotero/ssx@0.1.12/jsx-runtime.ts",
+        "markdown-it-attrs": "npm:markdown-it-attrs@^4.3.1",
+        "markdown-it-toc-done-right": "npm:markdown-it-toc-done-right@^4.2.0",
+        "markdown-it-anchor": "npm:markdown-it-anchor@^9.2.0",
         "missing.css": "npm:missing.css@^1.2.0",
         "$urutau/components/": "./src/components/",
         "$urutau/lib/": "./lib/",
@@ -56,7 +59,8 @@
             "lume/types.ts"
         ],
         "jsx": "react-jsx",
-        "jsxImportSource": "lume"
+        "jsxImportSource": "lume",
+        "checkJs": true
     },
     "unstable": [
         "temporal",
