@@ -1,6 +1,6 @@
 # Urutaú Limited Website
 
-> v.1.0.0 (First Light)
+> v.1.1.1 (First Light)
 
 Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging
@@ -20,6 +20,7 @@ and nothing more interesting than that.
 - Licensed AGPL-3.0+ (where applicable) to ensure your freedom ;)
 - Static site files
   [verified with attestations](https://github.com/FuncProgLinux/urutau-ltd.org/attestations)
+- Browser screenreader friendly
 
 ## Usage
 
