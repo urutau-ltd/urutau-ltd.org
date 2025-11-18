@@ -27,21 +27,24 @@ El sitio se despliega y genera pruebas de
 
 Este sitio web utiliza la siguiente matriz de tecnologías:
 
-| Tecnología         | Licencia                |
-| ------------------ | ----------------------- |
-| Deno               | Expat (MIT)             |
-| Deno `@std/assert` | Expat (MIT)             |
-| Deno `@std/path`   | Expat (MIT)             |
-| GNU Bash           | GNU GPLv3+              |
-| GNU Emacs          | GNU GPLv3+              |
-| GNU Guix           | GNU GPLv3+              |
-| GNU Make           | GNU GPLv3+              |
-| Highlight.JS       | BSD-3-Clause            |
-| Lume               | Expat (MIT)             |
-| Missing.CSS        | BSD-2-Clause            |
-| Perl `v5.36`       | Artistic o GNU GPL v1+* |
-| Podman             | Apache 2.0              |
-| TypeScript         | Apache 2.0              |
+| Tecnología                   | Licencia                  |
+|------------------------------|---------------------------|
+| Deno                         | Expat (MIT)               |
+| Deno `@std/assert`           | Expat (MIT)               |
+| Deno `@std/path`             | Expat (MIT)               |
+| GNU Bash                     | GNU GPLv3+                |
+| GNU Emacs                    | GNU GPLv3+                |
+| GNU Guix                     | GNU GPLv3+                |
+| GNU Make                     | GNU GPLv3+                |
+| Highlight.JS                 | BSD-3-Clause              |
+| Lume                         | Expat (MIT)               |
+| Missing.CSS                  | BSD-2-Clause              |
+| Perl `v5.36`                 | Artistic o GNU GPL v1+*   |
+| Podman                       | Apache 2.0                |
+| TypeScript                   | Apache 2.0                |
+| `npm:markdown-it-done-right` | Expat (MIT)               |
+| `npm:markdown-it-attrs`      | Expat (MIT)               |
+| `npm:markdown-it-anchor`     | Public Domain (Unlicense) |
 
 > *El [sitio web de Perl](https://dev.perl.org/licenses/) dice "either version
 > 1, or (at your option) any later version". Se utiliza la versión posterior
