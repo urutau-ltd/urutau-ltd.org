@@ -40,7 +40,9 @@
      (bug-reference-bug-regexp
       . "\\(#\\([0-9]+\\)\\)")
      (geiser-insert-actual-lambda . nil)
-     (eval . (add-to-list 'completion-ignored-extensions ".go"))))
+     (eval . (progn
+               (add-to-list 'completion-ignored-extensions ".go")
+               (add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-mode))))))
  (emacs-lisp-mode . ((indent-tabs-mode . nil)))
  (markdown-mode    . ((indent-tabs-mode . nil)
                      (fill-column      . 80)))
