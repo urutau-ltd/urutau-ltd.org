@@ -10,11 +10,22 @@ interface Props {
     children?: JSX.Children;
 }
 
+/**
+ * This component represents the "readable" portion of a blog post inside the
+ * website. It's meant to be used only in the src/_includes/layouts/post.tsx
+ * layout component.
+ *
+ * @returns {JSX.Component} a JSX component representing the post reading section
+ */
 const PostBody = (
-    { title, description, author, tags, children, date }: Props,
+    { title, description, author, tags, children, date }: Readonly<Props>,
 ): JSX.Component => {
     if (typeof title === "undefined") {
         title = "Got 'undefined' value for this component.";
+    }
+
+    if (typeof description === "undefined") {
+        description = "Got 'undefined' value for this component.";
     }
 
     const dateOpts: Readonly<Intl.DateTimeFormatOptions> = {
@@ -25,7 +36,7 @@ const PostBody = (
     };
 
     return (
-        <main class="airy">
+        <main>
             <h1>{title}</h1>
             <p>
                 {description}
@@ -38,7 +49,9 @@ const PostBody = (
                 Etiquetas:&nbsp;
                 <PostTags tags={tags} />
             </div>
-            {children}
+            <article>
+                {children}
+            </article>
         </main>
     );
 };
