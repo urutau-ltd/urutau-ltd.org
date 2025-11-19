@@ -37,7 +37,7 @@
 (define nyc
   (package
     (name "nyc")
-    (version "1.0.0")
+    (version "2.0.0")
     (source
      (local-file %source
                  #:recursive? #t
@@ -65,6 +65,38 @@ project blog. It's inspired by hugo cli and should not be used outside
 this repository!")
     (license license:gpl3+)))
 
+(define genmail
+  (package
+    (name "genmail")
+    (version "1.0.0")
+    (source
+     (local-file %source
+                 #:recursive? #t
+                 #:select? (git-predicate %source)))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:substitutable? #f
+      #:install-plan
+      #~'(("genmail.pl" "bin/genmail"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'wrap-script
+            (lambda _
+              (wrap-program (string-append #$output "/bin/genmail")
+                )
+              `("PERL5LIB" ":" prefix
+                (,(getenv "PERL5LIB") ,(string-append #$output
+                                                      "/lib/perl5/site_perl"))))))))
+    (inputs (list perl))
+    (home-page "https://urutau-ltd.org")
+    (synopsis "Email obfuscation script for urutau-ltd.org website")
+    (description
+     "This tool is used to describe your contact.md email hash to prevent
+primitive crawlers/spambots to ruin your precious inbox with their nasty
+emails.")
+    (license license:gpl3+)))
+
 (concatenate-manifests (list (specifications->manifest (list "gcc-toolchain"
                                                         "bash"
                                                         "coreutils"
@@ -81,4 +113,5 @@ this repository!")
                                                         "git"
                                                         "podman"
                                                         "podman-compose"))
-                             (packages->manifest (list nyc))))
+                             (packages->manifest (list nyc
+                                                       genmail))))
