@@ -28,7 +28,7 @@ El sitio se despliega y genera pruebas de
 Este sitio web utiliza la siguiente matriz de tecnologías:
 
 | Tecnología                   | Licencia                  |
-|------------------------------|---------------------------|
+| ---------------------------- | ------------------------- |
 | Deno                         | Expat (MIT)               |
 | Deno `@std/assert`           | Expat (MIT)               |
 | Deno `@std/path`             | Expat (MIT)               |
