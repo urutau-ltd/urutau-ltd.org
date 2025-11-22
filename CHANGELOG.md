@@ -1,8 +1,17 @@
 # CHANGELOG
 
-## v1.0.0-first-light
+## v1.1.1-first-light
 
-- Stable site deployed
+- Add a table of contents for posts
+- Documentation improvements
+- Look and spacing removed (had to delete `class="airy"`)
+- Added RSS/JSON subscription links
+- Fixed OG images in some entries
+
+### Internal tools
+
+- `nyc` tool is now `v2.0.0`
+- `genmail.sh` is now `genmail.pl` at `v1.0.0`
 
 ## v1.1.0-first-light
 
@@ -14,3 +23,7 @@
 - Internal library + unit testing
 - JSX Components for easier building/reading
 - Autogenerators for `tags` and `author` posts
+
+## v1.0.0-first-light
+
+- Stable site deployed
