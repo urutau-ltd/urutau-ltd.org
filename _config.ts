@@ -15,6 +15,11 @@ import seo from "lume/plugins/seo.ts";
 import sitemap from "lume/plugins/sitemap.ts";
 import slugifyUrls from "lume/plugins/slugify_urls.ts";
 
+// markdown-it plugins
+import mdToc from "markdown-it-toc-done-right";
+import mdAnchor from "markdown-it-anchor";
+import mdAttrs from "markdown-it-attrs";
+
 // Additional highlight.JS languages
 import lang_awk from "highlight.js/lib/languages/awk";
 import lang_bash from "highlight.js/lib/languages/bash";
@@ -53,6 +58,28 @@ const site: Site = lume({
         "ignore": [
             "/.git",
         ],
+    },
+}, {
+    markdown: {
+        plugins: [
+            [mdToc, {
+                level: [2, 3, 4, 5, 6],
+                listType: "ul",
+                containerClass: "table-of-contents",
+                listClass: "nested-list",
+            }],
+            [mdAnchor, {
+                permalink: mdAnchor.permalink.linkInsideHeader({
+                    placement: "before",
+                    symbol: "☍",
+                    class: "text-decoration-none",
+                }),
+            }],
+            mdAttrs,
+        ],
+        options: {
+            html: true,
+        },
     },
 });
 

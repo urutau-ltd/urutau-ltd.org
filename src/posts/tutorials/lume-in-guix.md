@@ -13,6 +13,14 @@ tags:
 draft: false
 ---
 
+<details>
+    <summary>Índice:</summary>
+    <!-- Don't forget the newline before and after [[toc]]!!! -->
+
+    [[toc]]
+
+</details>
+
 Si estás leyendo esto, probablemente nos encontraste en algún otro sitio o
 salimos en los resultados de alguna búsqueda que hiciste en tu navegador. Desde
 que iniciamos este proyecto, nos ha hecho falta un sitio web, mismo que ha

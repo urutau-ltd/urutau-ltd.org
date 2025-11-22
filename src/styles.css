@@ -53,3 +53,13 @@ body {
         background: unset;
     }
 }
+
+/* Markdown styling */
+nav.table-of-contents {
+    & ul {
+        padding-inline-start: 2rem;
+    }
+    & li::marker {
+        font-family: sans-serif;
+    }
+}

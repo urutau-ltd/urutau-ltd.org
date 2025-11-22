@@ -10,6 +10,14 @@ type: page
 
 Aquí hay otros recursos en el internet que podrían interesarte:
 
+<details>
+    <summary>Índice:</summary>
+    <!-- Don't forget the newline before and after [[toc]]!!! -->
+
+    [[toc]]
+
+</details>
+
 ## Blogs
 
 - [GUIX Blog](https://guix.gnu.org/en/blog/): Noticias oficiales de GNU Guix
@@ -33,3 +41,7 @@ Aquí hay otros recursos en el internet que podrían interesarte:
 ### Scheme
 
 - [LIPS](https://lips.js.org/): Un intérprete de Scheme escrito en JavaScript.
+
+- [Structure and Interpretation of Computer Programs](https://web.mit.edu/6.001/6.037/sicp.pdf):
+  Libro gratuito para aprender a programar en Scheme y desarrollar tu lógica
+  como desarrollador.

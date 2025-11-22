@@ -5,6 +5,14 @@ layout: layout.tsx
 
 # ACUERDO DE PRIVACIDAD Y COMPROMISO DE CERO RECOLECCIÓN DE DATOS PERSONALES
 
+<details>
+    <summary>Índice:</summary>
+    <!-- Don't forget the newline before and after [[toc]]!!! -->
+
+    [[toc]]
+
+</details>
+
 ## 1. Preámbulo y Principio Fundamental
 
 En Urutaú Limited, la privacidad y el respeto absoluto por la identidad digital

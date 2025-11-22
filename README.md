@@ -1,6 +1,6 @@
 # Urutaú Limited Website
 
-> v.1.0.0 (First Light)
+> v.1.1.1 (First Light)
 
 Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging
@@ -20,6 +20,7 @@ and nothing more interesting than that.
 - Licensed AGPL-3.0+ (where applicable) to ensure your freedom ;)
 - Static site files
   [verified with attestations](https://github.com/FuncProgLinux/urutau-ltd.org/attestations)
+- Browser screenreader friendly
 
 ## Usage
 
@@ -178,19 +179,26 @@ Run `make image` to build a Podman `builder` image.
 
 Run `make oci-build` to build the lume site using the generated builder image.
 
-## The `genmail.sh` script
+## The `genmail.pl` script
 
-For the `contact.md` page you can generate an encoded Email to prevent basic
-bots and crawlers from extracting your address for spam. It won't stop humans
-who understand some `GNU Bash` though. But forcing them to read code or think
-the contact challenge for themselves could discourage some individuals, at least
-the lazy/mediocre ones I'd like to think...
+For the `contact.md` page you can generate an encoded email to prevent basic
+bots and crawlers from extracting your address for spam. The Perl rewrite still
+uses the same reversible pipeline, but it now ships a complete CLI so you can
+encode, decode, or verify challenge strings without touching additional tools.
 
-To use the script you must invoke it with the e-mail variable you wish to
-encode:
+You can feed it through the `GENMAIL_TARGET` environment variable or pass
+`--email` explicitly:
 
 ```bash
-GENMAIL_TARGET=greenscreenmother@email.com ./genmail.sh
+GENMAIL_TARGET=greenscreenmother@email.com ./genmail.pl
+./genmail.pl --email greenscreenmother@email.com
+```
+
+When auditing existing entries the new options come in handy:
+
+```bash
+./genmail.pl --decode --challenge 'NzYyN2Y2Z...'
+./genmail.pl --verify-challenge --challenge 'NzYyN2Y2Z...' --email greenscreenmother@email.com
 ```
 
 ## Deploy

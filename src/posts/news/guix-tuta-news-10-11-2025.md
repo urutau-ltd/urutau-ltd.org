@@ -3,7 +3,7 @@ title: "Noticias Guix Tuta (2025-11-10)"
 description: Novedades del wrapper para el cliente de correos Tuta en Guix.
 date: 2025-11-10
 author: "FuncProgLinux"
-image: "/posts/@/index.png"
+image: "/posts/news/@/index.png"
 draft: false
 tags:
     - Noticias
