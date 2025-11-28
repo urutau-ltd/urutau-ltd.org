@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.1.2-first-light
+
+- Fix 404 on 404 error page (yes, as absurd as it sounds)
+- Add OG Images for non blog posts
+
 ## v1.1.1-first-light
 
 - Add a table of contents for posts
