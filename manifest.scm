@@ -113,5 +113,4 @@ emails.")
                                                         "git"
                                                         "podman"
                                                         "podman-compose"))
-                             (packages->manifest (list nyc
-                                                       genmail))))
+                             (packages->manifest (list nyc genmail))))

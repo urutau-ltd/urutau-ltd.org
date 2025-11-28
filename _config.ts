@@ -104,14 +104,32 @@ site.use(googleFonts({
     cssFile: "/urutau.css",
 }));
 
-site.use(metas());
-site.use(ogImages());
-
 site.use(postcss());
-site.add("npm:missing.css@1.2.0", "missing.css");
 
 /* Normalize resources base paths */
 site.use(base_path());
+
+/* Slug-ify resources */
+site.use(slugifyUrls({
+    extensions: "*",
+    replace: {
+        "Á": "A",
+        "É": "E",
+        "Í": "I",
+        "Ó": "O",
+        "Ú": "U",
+        "á": "a",
+        "é": "e",
+        "í": "i",
+        "ó": "o",
+        "ú": "u",
+    },
+}));
+
+site.use(ogImages());
+site.use(metas());
+
+site.add("npm:missing.css@1.2.0", "missing.css");
 
 /* Highlight.js Syntax highlighter */
 site.use(codeHighlight({
@@ -201,23 +219,6 @@ site.add("public/manifest.json", "manifest.json");
 site.add("public/js/sw.js", "sw.js");
 
 site.use(sitemap());
-
-/* Slug-ify resources */
-site.use(slugifyUrls({
-    extensions: "*",
-    replace: {
-        "Á": "A",
-        "É": "E",
-        "Í": "I",
-        "Ó": "O",
-        "Ú": "U",
-        "á": "a",
-        "é": "e",
-        "í": "i",
-        "ó": "o",
-        "ú": "u",
-    },
-}));
 
 /* Generate the site's RSS feed */
 site.use(feed({
