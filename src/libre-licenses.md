@@ -58,6 +58,12 @@ El logo presente en esta página es propiedad de Urutaú Limited, también conoc
 como Urutaú LTD. Puedes utilizarlo bajo la licencia
 [Creative Commons Atribución/Reconocimiento-SinDerivados 4.0 Internacional (CC-BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/deed.es).
 
+## gavia.png
+
+El logo del proyecto **Gavia** es propiedad de Urutaú Limited, también conocido
+como Urutaú LTD. Puedes utilizarlo bajo la licencia
+[Creative Commons Atribución/Reconocimiento-SinDerivados 4.0 Internacional (CC-BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/deed.es).
+
 ### 404.jpg
 
 La imágen utilizada en las páginas de error 404 (no encontrado) se titula
@@ -70,3 +76,24 @@ Es autoría de: [Gmmv1980](https://commons.wikimedia.org/wiki/User:Gmmv1980) baj
 la licencia
 [Creative Commons Attribution-Share Alike 4.0
 International](https://creativecommons.org/licenses/by-sa/4.0/deed.en)
+
+## aile.png
+
+AVISO DE PROPIEDAD INTELECTUAL
+
+Este proyecto contiene referencias a personajes y elementos visuales de "Mega
+Man ZX", propiedad de Capcom Co., Ltd. Estas referencias se utilizan únicamente
+con fines de identificación y educativos en este proyecto de código abierto no
+comercial.
+
+RENUNCIA DE RESPONSABILIDAD:
+
+- Este proyecto NO está afiliado con, respaldado por, o patrocinado por Capcom
+- No se pretende infringir derechos de autor
+- Todos los derechos de propiedad intelectual de Capcom permanecen como
+  propiedad exclusiva de Capcom Co., Ltd.
+- Este es un proyecto hecho por fans sin ánimo de lucro
+- No se obtiene beneficio comercial alguno del uso de estas referencias
+
+Si eres titular de derechos de autor y crees que tus derechos han sido violados,
+contáctanos y abordaremos tu preocupación de inmediato.

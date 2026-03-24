@@ -13,7 +13,7 @@ const HeadIncludes = ({ title }: Props): JSX.Component => {
             <meta charset="UTF-8" />
             <meta
                 name="viewport"
-                content="width=device-width, initial-scale=1"
+                content="width=device-width, initial-scale=1, shrink-to-fit=no"
             />
             {/* CSS Files */}
             <link rel="stylesheet" href="/missing.css" />
