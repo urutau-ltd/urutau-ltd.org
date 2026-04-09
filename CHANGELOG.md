@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## v1.2.0-first-light
+
+- Deterministic OG images
+- Better contact obfuscation for the public website email
+- Add `security.txt`, `/.well-known/security.txt`, `llm.txt` and `/jslicense/`
+- Externalize site scripts and improve partial LibreJS compatibility
+- Service worker caching cleaned up a bit
+- Removed the recursive OG patcher build noise by fixing the source path instead
+
+### Internal tools
+
+- `nyc doctor` now catches metadata mistakes, taxonomy collisions and obvious
+  public email leaks
+- `nyc add` now writes the correct OG image path for new posts
+- Tag/author generation shares one deduplicated taxonomy pipeline
+
 ## v1.1.2-first-light
 
 - Fix 404 on 404 error page (yes, as absurd as it sounds)

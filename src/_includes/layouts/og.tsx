@@ -2,11 +2,28 @@ interface Props {
     title: string;
     description: string;
     author: string;
+    date?: Date | string;
+    url?: string;
 }
 
+const formatOgDate = (date: Date | string | undefined): string | undefined => {
+    if (date instanceof Date) {
+        return date.toISOString().slice(0, 10);
+    }
+
+    if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}/.test(date)) {
+        return date.slice(0, 10);
+    }
+
+    return undefined;
+};
+
 export default function (
-    { title, description, author }: Props,
+    { title, description, author, date, url }: Props,
 ): JSX.Component {
+    const publishedAt: string | undefined = formatOgDate(date);
+    const reference: string = publishedAt ?? url ?? "https://urutau-ltd.org";
+
     return (
         <div
             style={{
@@ -95,7 +112,7 @@ export default function (
                         color: "#9ca3af",
                     }}
                 >
-                    ID: {crypto.randomUUID()}
+                    {publishedAt ? "Publicado" : "Ruta"}: {reference}
                 </span>
             </div>
         </div>

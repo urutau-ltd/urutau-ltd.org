@@ -1,14 +1,17 @@
-/**
- * Normally used in src/components, the tags.page.ts generator
- * and the authors.page.ts generator. Not anywhere else.
- * It serves its purpose as a tag normalizer, removing spaces and
- * replacing them with hyphens (-)
- *
- * @param {string} tag - The tag name (e.g "Tutoriales")
- * @returns {string} The slug URL (e.g "/tags/tutoriales")
- */
+const normalizeTaxonomyValue = (value: string): string => {
+    return value
+        .trim()
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]+/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "");
+};
+
 export const createTagUrl = (tag: string): string => {
-    return `/tags/${tag.trim().toLowerCase().replace(/\s+/g, "-")}/`;
+    return `/tags/${normalizeTaxonomyValue(tag)}/`;
 };
 
 /**
@@ -20,5 +23,5 @@ export const createTagUrl = (tag: string): string => {
  * @returns {string} The slug URL (e.g "/author/funcproglinux")
  */
 export const createAuthorUrl = (author: string): string => {
-    return `/author/${author.trim().toLowerCase()}/`;
+    return `/author/${normalizeTaxonomyValue(author)}/`;
 };

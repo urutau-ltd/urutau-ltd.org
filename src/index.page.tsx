@@ -4,6 +4,7 @@ import { PostAuthor } from "$urutau/components/shared/PostAuthor.tsx";
 
 export const title: string = "¡Bienvenid@!";
 export const layout: string = "layout.tsx";
+export const pagefind: boolean = true;
 
 export default (data: Lume.Data, _helpers: Lume.Helpers): JSX.Component => {
     const posts: Data[] = data.search.pages("type=post", "date=desc", 3);

@@ -15,7 +15,7 @@ const sw = self;
  * Cache version string. Bump the version to invalidate every cache bucket.
  * @type {string}
  */
-const CACHE_VERSION = "urutau-v1.1.1";
+const CACHE_VERSION = "urutau-v1.2.0";
 
 /**
  * Cache name that stores the application shell and other immutable assets.
@@ -57,6 +57,25 @@ const STATIC_ASSET_PATTERN =
 const DEV_HOSTNAMES = new Set(["localhost", "127.0.0.1"]);
 
 /**
+ * Query parameters commonly used for campaign tracking that should never create
+ * distinct cache entries.
+ * @type {Set<string>}
+ */
+const TRACKING_QUERY_PARAMS = new Set([
+    "fbclid",
+    "gclid",
+    "mc_cid",
+    "mc_eid",
+    "ref",
+    "source",
+    "utm_campaign",
+    "utm_content",
+    "utm_medium",
+    "utm_source",
+    "utm_term",
+]);
+
+/**
  * Flag indicating whether we are developing locally.
  * @type {boolean}
  */
@@ -71,6 +90,8 @@ const APP_SHELL_URLS = [
     "/",
     "/index.html",
     "/404.html",
+    "/js/contact-reveal.js",
+    "/js/register-sw.js",
     "/missing.css",
     "/urutau.css",
     "/img/urutau.png",
@@ -140,8 +161,32 @@ const isCacheableResponse = (response) =>
     Boolean(
         response &&
             response.status === 200 &&
+            !response.redirected &&
+            !(response.headers.get("cache-control") || "").includes(
+                "no-store",
+            ) &&
             (response.type === "basic" || response.type === "default"),
     );
+
+/**
+ * Creates a stable same-origin cache key by removing tracking parameters while
+ * preserving the real path.
+ * @param {Request} request
+ * @returns {string}
+ */
+const getCacheKey = (request) => {
+    /** @type {URL} */
+    const requestUrl = new URL(request.url);
+
+    for (const key of Array.from(requestUrl.searchParams.keys())) {
+        if (TRACKING_QUERY_PARAMS.has(key)) {
+            requestUrl.searchParams.delete(key);
+        }
+    }
+
+    requestUrl.hash = "";
+    return requestUrl.toString();
+};
 
 /**
  * Returns the offline fallback document or undefined when not cached yet.
@@ -191,12 +236,13 @@ const staleWhileRevalidate = async (request) => {
     const cache = await caches.open(STATIC_CACHE_NAME);
 
     /** @type {Response | undefined} */
-    const cachedResponse = await cache.match(request);
+    const cacheKey = getCacheKey(request);
+    const cachedResponse = await cache.match(cacheKey);
 
     /** @type {Promise<Response>} */
     const fetchAndUpdate = fetch(request).then(async (response) => {
         if (isCacheableResponse(response)) {
-            await cache.put(request, response.clone());
+            await cache.put(cacheKey, response.clone());
         }
         return response;
     });
@@ -219,15 +265,24 @@ const staleWhileRevalidate = async (request) => {
  * @param {Request} request
  * @returns {Promise<Response>}
  */
-const networkFirstPage = async (request) => {
+const networkFirstPage = async (request, preloadResponsePromise) => {
     /** @type {Cache} */
     const cache = await caches.open(PAGES_CACHE_NAME);
+    const cacheKey = getCacheKey(request);
 
     try {
+        /** @type {Response | undefined} */
+        const preloadedResponse = await preloadResponsePromise;
+        if (isCacheableResponse(preloadedResponse)) {
+            await cache.put(cacheKey, preloadedResponse.clone());
+            await trimCache(PAGES_CACHE_NAME, MAX_PAGE_ENTRIES);
+            return preloadedResponse;
+        }
+
         /** @type {Response} */
         const response = await fetch(request);
         if (isCacheableResponse(response)) {
-            await cache.put(request, response.clone());
+            await cache.put(cacheKey, response.clone());
             await trimCache(PAGES_CACHE_NAME, MAX_PAGE_ENTRIES);
         }
         return response;
@@ -235,7 +290,7 @@ const networkFirstPage = async (request) => {
         log("Network navigation failed, falling back to cache.", error);
 
         /** @type {Response | undefined} */
-        const cached = await cache.match(request);
+        const cached = await cache.match(cacheKey);
         if (cached) {
             return cached;
         }
@@ -292,11 +347,16 @@ const handleInstall = (event) => {
  * @returns {void}
  */
 const handleActivate = (event) => {
-    sw.clients.claim();
     event.waitUntil(
-        cleanupLegacyCaches().catch((error) => {
-            console.warn("[SW] Cache cleanup failed:", error);
-        }),
+        Promise.all([
+            sw.clients.claim(),
+            sw.registration.navigationPreload?.enable().catch((error) => {
+                console.warn("[SW] Navigation preload setup failed:", error);
+            }),
+            cleanupLegacyCaches().catch((error) => {
+                console.warn("[SW] Cache cleanup failed:", error);
+            }),
+        ]),
     );
 };
 
@@ -321,7 +381,7 @@ const handleFetch = (event) => {
     }
 
     if (isHtmlNavigationRequest(request)) {
-        event.respondWith(networkFirstPage(request));
+        event.respondWith(networkFirstPage(request, event.preloadResponse));
         return;
     }
 

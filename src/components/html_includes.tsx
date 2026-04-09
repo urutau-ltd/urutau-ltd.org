@@ -1,4 +1,5 @@
 interface Props {
+    pagefind?: boolean | undefined;
     title: string | undefined;
 }
 
@@ -15,9 +16,11 @@ const HeadIncludes = ({ title }: Props): JSX.Component => {
                 name="viewport"
                 content="width=device-width, initial-scale=1, shrink-to-fit=no"
             />
+            <meta name="referrer" content="no-referrer" />
             {/* CSS Files */}
             <link rel="stylesheet" href="/missing.css" />
             <link rel="stylesheet" href="/urutau.css" />
+            <link rel="jslicense" href="/jslicense/" />
             <link rel="manifest" href="/manifest.json" />
             {/* MetaTags */}
             <meta name="title" content={title} />
@@ -35,35 +38,8 @@ const HeadIncludes = ({ title }: Props): JSX.Component => {
                 name="apple-mobile-web-app-status-bar-style"
                 content="blue"
             />
-            <link rel="manifest" href="manifest.json" />
-            <script
-                dangerouslySetInnerHTML={{
-                    __html: `
-            (() => {
-                if ('serviceWorker' in navigator) {
-                    globalThis.addEventListener("load", () => {
-                        navigator.serviceWorker.register("/sw.js", {
-                            type: "module",
-                            scope: "/",
-                        })
-                        .then(
-                            (reg) =>
-                                console.info(
-                                    \`SW: Registered correctly as a module!\`,
-                                ),
-                        )
-                        .catch(
-                            (err) =>
-                                console.error(
-                                    \`SW: Failed to register service worker: \${err}\`,
-                                ),
-                        );
-                    });
-                }
-            })();
-        `,
-                }}
-            />
+            <script defer src="/js/register-sw.js"></script>
+            <script defer src="/js/contact-reveal.js"></script>
         </head>
     );
 };

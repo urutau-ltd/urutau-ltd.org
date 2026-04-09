@@ -23,6 +23,6 @@ LABEL org.opencontainers.image.url=https://sl.urutau-ltd.org/urutau-ltd.org/
 LABEL org.opencontainers.image.source=https://sl.urutau-ltd.org/urutau-ltd.org/
 LABEL org.opencontainers.image.description="Static site builder image"
 LABEL org.opencontainers.image.vendor="Urutaú Limited."
-LABEL org.opencontainers.image.version="v1.0.0-first-light"
+LABEL org.opencontainers.image.version="v1.2.0-first-light"
 
 CMD ["make", "build"]

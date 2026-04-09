@@ -48,7 +48,6 @@ import lang_xml from "highlight.js/lib/languages/xml";
 import lang_yaml from "highlight.js/lib/languages/yaml";
 
 import { ErrorMessage } from "lume/plugins/seo/mod.ts";
-import { fixOGPaths } from "./scripts/fix_og_paths.ts";
 
 const site: Site = lume({
     location: new URL("https://urutau-ltd.org"),
@@ -100,7 +99,7 @@ site.use(redirects());
 
 site.use(googleFonts({
     fonts:
-        "https://fonts.googleapis.com/css2?family=Sen:wght@400..800&display=swap",
+        "https://fonts.googleapis.com/css2?family=Neuton:ital,wght@0,200;0,300;0,400;0,700;0,800;1,400&display=swap",
     cssFile: "/urutau.css",
 }));
 
@@ -214,8 +213,14 @@ site.add("styles.css", "urutau.css");
 
 site.add("public/favicon.ico", "favicon.ico");
 site.add("public/img/", "img/");
+site.add("public/.well-known/", ".well-known/");
+site.add("public/js/register_sw.js", "js/register-sw.js");
+site.add("public/js/pagefind_init.js", "js/pagefind-init.js");
+site.add("public/js/contact_reveal.js", "js/contact-reveal.js");
+site.add("public/llm.txt", "llm.txt");
 site.add("public/pwa/", ".");
 site.add("public/manifest.json", "manifest.json");
+site.add("public/security.txt", "security.txt");
 site.add("public/js/sw.js", "sw.js");
 
 site.use(sitemap());
@@ -251,13 +256,5 @@ site.use(seo({
         }
     },
 }));
-
-site.addEventListener("afterBuild", async (): Promise<void> => {
-    console.info("🏗  Running post-build tasks...");
-    console.info("🔧 Fixing OG image paths...");
-    const postsDir: string = new URL("output/posts", import.meta.url).pathname;
-    await fixOGPaths(postsDir);
-    console.info("✅ Post-build tasks completed.");
-});
 
 export default site;

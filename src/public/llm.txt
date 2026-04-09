@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /
+
+This website and its contents are not offered for language-model training,
+embedding, retrieval augmentation, synthetic corpus generation, or automated
+dataset harvesting.
+
+Human readers are welcome. Automated extraction for model development is not.

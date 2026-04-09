@@ -38,6 +38,11 @@ Readonly::Scalar my $CONTACT_PROMPT => 'Desafío de Contacto';
 Readonly::Scalar my $DECODE_PROMPT => 'Prueba de decoding';
 Readonly::Scalar my $VERIFY_PROMPT => 'Verificacion exitosa';
 Readonly::Scalar my $TIMESTAMP_FORMAT => '%Y-%m-%d %H:%M:%S';
+Readonly::Scalar my $CONTACT_CHALLENGE_PREFIX => 'u2';
+Readonly::Scalar my $CONTACT_MASK_SEED => 'Urutau::Contact::v2';
+
+my @V2_REORDER = (1, 3, 0, 2);
+my @V2_RESTORE = (2, 0, 3, 1);
 
 our $VERSION = version->declare('v1.0.0');
 
@@ -70,7 +75,9 @@ sub main ($argv_ref) {
             die "Challenge decodes to <$decoded_email>, which differs from <$email>.\n";
         }
 
-        my $expected = build_challenge($email);
+        my $expected = $normalized =~ /\A\Q$CONTACT_CHALLENGE_PREFIX\E\./ms
+            ? build_v2_challenge($email)
+            : build_legacy_challenge($email);
         if ($expected ne $normalized) {
             die "The supplied challenge does not match the canonical encoding.\n";
         }
@@ -183,10 +190,7 @@ sub fetch_challenge ($options) {
 # Keep the reversible transformation in one place so encode/verify never drift
 # apart and generate mismatched contact strings.
 sub build_challenge ($email) {
-    my $hex = to_hexadecimal($email);
-    my $reversed_hex = reverse $hex;
-
-    return encode_base64($reversed_hex, q{});
+    return build_v2_challenge($email);
 }
 
 #
@@ -195,11 +199,65 @@ sub build_challenge ($email) {
 sub decode_challenge ($challenge) {
     my $normalized = normalize_challenge($challenge);
 
-    if ($normalized !~ /\A[A-Za-z0-9+\/=]*\z/ms) {
+    if ($normalized =~ /\A\Q$CONTACT_CHALLENGE_PREFIX\E\./ms) {
+        return decode_v2_challenge($normalized);
+    }
+
+    return decode_legacy_challenge($normalized);
+}
+
+#
+# Hex serialization is isolated because both directions (encode + verify) have
+# to rely on the same low-level primitive.
+sub to_hexadecimal ($value) {
+    return unpack('H*', $value);
+}
+
+sub build_v2_challenge ($email) {
+    my @bytes = unpack('C*', $email);
+    my $length = scalar @bytes;
+    my @encoded = transform_contact_bytes(\@bytes, $length);
+    my $body = encode_base64url(pack('C*', @encoded));
+    my @parts = split_contact_body($body, 4);
+    my @reordered = @parts[@V2_REORDER];
+
+    return join('.', $CONTACT_CHALLENGE_PREFIX, sprintf('%x', $length), @reordered);
+}
+
+sub build_legacy_challenge ($email) {
+    my $hex = to_hexadecimal($email);
+    my $reversed_hex = reverse $hex;
+
+    return encode_base64($reversed_hex, q{});
+}
+
+sub decode_v2_challenge ($challenge) {
+    my @parts = split /\./, $challenge;
+    die "Invalid v2 challenge format.\n"
+        unless @parts == 6 && $parts[0] eq $CONTACT_CHALLENGE_PREFIX;
+
+    my $length = hex($parts[1]);
+    die "Invalid v2 challenge length.\n" unless $length > 0;
+
+    my @ordered = @parts[2 .. 5];
+    my @restored = @ordered[@V2_RESTORE];
+    my $payload = decode_base64url(join(q{}, @restored));
+    my @bytes = unpack('C*', $payload);
+    my @decoded = inverse_transform_contact_bytes(\@bytes, $length);
+    my $email = pack('C*', @decoded);
+
+    die "Decoded challenge length mismatch.\n"
+        unless length($email) == $length;
+
+    return $email;
+}
+
+sub decode_legacy_challenge ($challenge) {
+    if ($challenge !~ /\A[A-Za-z0-9+\/=]*\z/ms) {
         die "Challenge string contains invalid base64 characters.\n";
     }
 
-    my $reversed_hex = decode_base64($normalized);
+    my $reversed_hex = decode_base64($challenge);
     my $hex = reverse $reversed_hex;
 
     if (length($hex) % 2 != 0) {
@@ -209,11 +267,86 @@ sub decode_challenge ($challenge) {
     return pack('H*', $hex);
 }
 
-#
-# Hex serialization is isolated because both directions (encode + verify) have
-# to rely on the same low-level primitive.
-sub to_hexadecimal ($value) {
-    return unpack('H*', $value);
+sub transform_contact_bytes ($bytes_ref, $length) {
+    my @masked;
+
+    for my $index (0 .. $#$bytes_ref) {
+        push @masked, $bytes_ref->[$index] ^ contact_mask_byte($index, $length);
+    }
+
+    @masked = reverse @masked;
+    return rotate_right(\@masked, contact_rotation($length));
+}
+
+sub inverse_transform_contact_bytes ($bytes_ref, $length) {
+    my @rotated = rotate_left($bytes_ref, contact_rotation($length));
+    @rotated = reverse @rotated;
+
+    my @decoded;
+    for my $index (0 .. $#rotated) {
+        push @decoded, $rotated[$index] ^ contact_mask_byte($index, $length);
+    }
+
+    return @decoded;
+}
+
+sub contact_mask_byte ($index, $length) {
+    my $seed_length = length $CONTACT_MASK_SEED;
+    my $seed_index = ($index + $length) % $seed_length;
+    my $seed_value = ord substr($CONTACT_MASK_SEED, $seed_index, 1);
+
+    return ($seed_value + ($length * 17) + ($index * 31) + $seed_length) & 0xff;
+}
+
+sub contact_rotation ($length) {
+    return 0 if $length < 2;
+    return ($length % 5) + 1;
+}
+
+sub rotate_right ($values_ref, $shift) {
+    my @values = @$values_ref;
+    return @values if @values < 2 || !$shift;
+
+    $shift %= scalar @values;
+    return (@values[-$shift .. -1], @values[0 .. $#values - $shift]);
+}
+
+sub rotate_left ($values_ref, $shift) {
+    my @values = @$values_ref;
+    return @values if @values < 2 || !$shift;
+
+    $shift %= scalar @values;
+    return (@values[$shift .. $#values], @values[0 .. $shift - 1]);
+}
+
+sub split_contact_body ($body, $parts) {
+    my @chunks;
+    my $offset = 0;
+    my $base = int(length($body) / $parts);
+    my $extra = length($body) % $parts;
+
+    for my $index (0 .. ($parts - 1)) {
+        my $size = $base + ($index < $extra ? 1 : 0);
+        push @chunks, substr($body, $offset, $size);
+        $offset += $size;
+    }
+
+    return @chunks;
+}
+
+sub encode_base64url ($payload) {
+    my $encoded = encode_base64($payload, q{});
+    $encoded =~ tr{+/}{-_};
+    $encoded =~ s/=+\z//;
+    return $encoded;
+}
+
+sub decode_base64url ($payload) {
+    my $normalized = $payload;
+    $normalized =~ tr{-_}{+/};
+    my $padding = (4 - length($normalized) % 4) % 4;
+    $normalized .= '=' x $padding;
+    return decode_base64($normalized);
 }
 
 # 

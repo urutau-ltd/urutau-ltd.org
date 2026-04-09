@@ -23,6 +23,11 @@ Deno.test("createTagUrl handles leading/trailing whitespace", (): void => {
     assertEquals(result, "/tags/tutoriales/");
 });
 
+Deno.test("createTagUrl removes punctuation and accents", (): void => {
+    const result: string = createTagUrl(" Guía, TypeScript! ");
+    assertEquals(result, "/tags/guia-typescript/");
+});
+
 // createAuthorUrl ==>
 Deno.test("should handle single-word tags correctly", (): void => {
     const result: string = createAuthorUrl("Deno");
@@ -34,4 +39,9 @@ Deno.test("createAuthorUrl handles leading/trailing whitespace", (): void => {
         "  EverHadTheFeelingYouveBeenHereBefore  ",
     );
     assertEquals(result, "/author/everhadthefeelingyouvebeenherebefore/");
+});
+
+Deno.test("createAuthorUrl normalizes spaces and punctuation", (): void => {
+    const result: string = createAuthorUrl(" SeÑor Example, Jr. ");
+    assertEquals(result, "/author/senor-example-jr/");
 });

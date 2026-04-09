@@ -41,6 +41,7 @@ build: ## Builds the productive lume Site
 
 ci: ## Checks the code quality
 	@echo "==> [LUME/DEV]: Checking code quality..."
+	@bin/nyc doctor
 	@deno check
 	@deno lint
 	@deno fmt --check

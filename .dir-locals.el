@@ -35,6 +35,8 @@
 ((nil
   . ((fill-column . 80)
      (tab-width   .  8)
+     (sentence-end-double-space . nil)
+     (compile-command . "make ci")
      ;; For use with 'bug-reference-prog-mode'
      (bug-reference-url-format . "https://sl.urutau-ltd.org/urutau-ltd/urutau-ltd.org/issues/%s")
      (bug-reference-bug-regexp
@@ -42,7 +44,9 @@
      (geiser-insert-actual-lambda . nil)
      (eval . (progn
                (add-to-list 'completion-ignored-extensions ".go")
-               (add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-mode))))))
+               (add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-mode))
+               (when (derived-mode-p 'prog-mode 'text-mode)
+                 (bug-reference-mode 1))))))
  (emacs-lisp-mode . ((indent-tabs-mode . nil)))
  (markdown-mode    . ((indent-tabs-mode . nil)
                      (fill-column      . 80)))
@@ -52,14 +56,54 @@
                   ((indent-tabs-mode . nil)
                    (tab-width . 4)
                    (fill-column . 80)))
+ (typescript-ts-mode .
+                     ((indent-tabs-mode . nil)
+                      (tab-width . 4)
+                      (fill-column . 80)))
+ (tsx-ts-mode .
+              ((indent-tabs-mode . nil)
+               (tab-width . 4)
+               (fill-column . 80)))
+ (js-mode .
+          ((indent-tabs-mode . nil)
+           (tab-width . 4)
+           (fill-column . 80)))
+ (js-ts-mode .
+             ((indent-tabs-mode . nil)
+              (tab-width . 4)
+              (fill-column . 80)))
  (json-mode .
             ((indent-tabs-mode . nil)
              (tab-width . 4)
              (fill-column . 80)))
+ (json-ts-mode .
+               ((indent-tabs-mode . nil)
+                (tab-width . 4)
+                (fill-column . 80)))
+ (css-mode .
+           ((indent-tabs-mode . nil)
+            (tab-width . 4)
+            (fill-column . 80)))
+ (css-ts-mode .
+              ((indent-tabs-mode . nil)
+               (tab-width . 4)
+               (fill-column . 80)))
  (cperl-mode .
              ((indent-tabs-mode . nil)
               (tab-width . 4)
               (fill-column . 80)))
+ (sh-mode .
+          ((indent-tabs-mode . nil)
+           (tab-width . 4)
+           (fill-column . 80)))
+ (yaml-mode .
+            ((indent-tabs-mode . nil)
+             (tab-width . 2)
+             (fill-column . 80)))
+ (yaml-ts-mode .
+               ((indent-tabs-mode . nil)
+                (tab-width . 2)
+                (fill-column . 80)))
  (scheme-mode .
               ((geiser-guile-binary . ("guile"))
                (eval . (put 'sxml-match 'scheme-indent-function 1))))

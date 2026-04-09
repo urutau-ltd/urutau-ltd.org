@@ -1,6 +1,6 @@
 # Urutaú Limited Website
 
-> v.1.1.2 (First Light)
+> v.1.2.0 (First Light)
 
 Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging
@@ -21,6 +21,8 @@ and nothing more interesting than that.
 - Static site files
   [verified with attestations](https://github.com/FuncProgLinux/urutau-ltd.org/attestations)
 - Browser screenreader friendly
+- Partial LibreJS compatibility through `/jslicense/`
+- `security.txt` / `.well-known/security.txt` / `llm.txt` included
 
 ## Usage
 
@@ -173,6 +175,10 @@ you need features make use of your freedoms 1 and 3.
 Inside the guix shell environment you can consult the usage of this tool by
 running `nyc --help`.
 
+One useful command lately is `nyc doctor`. It checks front matter, taxonomy URL
+collisions, weird OG metadata mistakes and obvious public email leaks before
+they waste your time. `make ci` runs it too.
+
 ## Building on Podman
 
 Run `make image` to build a Podman `builder` image.
@@ -183,8 +189,8 @@ Run `make oci-build` to build the lume site using the generated builder image.
 
 For the `contact.md` page you can generate an encoded email to prevent basic
 bots and crawlers from extracting your address for spam. The Perl rewrite still
-uses the same reversible pipeline, but it now ships a complete CLI so you can
-encode, decode, or verify challenge strings without touching additional tools.
+uses a reversible challenge, but it now ships a complete CLI so you can encode,
+decode, or verify challenge strings without touching additional tools.
 
 You can feed it through the `GENMAIL_TARGET` environment variable or pass
 `--email` explicitly:
@@ -197,9 +203,12 @@ GENMAIL_TARGET=greenscreenmother@email.com ./genmail.pl
 When auditing existing entries the new options come in handy:
 
 ```bash
-./genmail.pl --decode --challenge 'NzYyN2Y2Z...'
-./genmail.pl --verify-challenge --challenge 'NzYyN2Y2Z...' --email greenscreenmother@email.com
+./genmail.pl --decode --challenge 'u2.17.part1.part2.part3.part4'
+./genmail.pl --verify-challenge --challenge 'u2.17.part1.part2.part3.part4' --email greenscreenmother@email.com
 ```
+
+For people and tools that care about policy files, the site also ships
+`/security.txt`, `/.well-known/security.txt`, `/llm.txt` and `/jslicense/`.
 
 ## Deploy
 
