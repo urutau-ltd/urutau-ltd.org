@@ -43,3 +43,5 @@ Gracias a estas pequeñas adiciones, además de un par de ajustes al comando
 `guix shell` utilizado para crear el contenedor tipo FHS, ahora el lanzador del
 AppImage persiste el inicio de sesión entre reinicios y se integra correctamente
 con el demonio de notificaciones del sistema.
+
+¡Gracias por leer el blog de Urutaú Limited! 🖤🦉

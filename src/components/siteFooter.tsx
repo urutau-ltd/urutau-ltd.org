@@ -47,14 +47,17 @@ const SiteFooter = (): JSX.Component => {
                 licencia.
             </p>
             <p>
-                Hecho con 💜 en{" "}
+                Este sitio es compatible con LibreJS
+            </p>
+            <p>
+                Hecho con 🖤 en{" "}
                 <a
                     href="https://gnu.org/software/emacs"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     GNU Emacs
-                </a>,
+                </a>,{" "}
                 <a
                     href="https://guix.gnu.org"
                     target="_blank"

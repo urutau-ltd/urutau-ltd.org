@@ -768,4 +768,4 @@ tenemos analytics ni formularios de correo para evitar el spam, te invito a
 suscribirte por medio de RSS o JSON usando los enlaces en el `footer` de este
 sitio.
 
-¡Gracias por leer el blog de Urutaú Limited! 💜🦉
+¡Gracias por leer el blog de Urutaú Limited! 🖤🦉

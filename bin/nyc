@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright © 2024-2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+# Copyright © 2024-2026 Urutau-Ltd <softwarelibre@urutau-ltd.org>
 #
 #   , _ ,      _    _            _                     _ _      _
 #  ( o o )    | |  | |          | |                   | | |    | |
@@ -524,7 +524,7 @@ sub cmd_info ($argv, $opts) {
     for my $key (sort keys %{ $info->{metadata} }) {
       my $value = $info->{metadata}{$key};
       if (ref $value eq 'ARRAY') {
-        plog(sprintf('%s: %s', ucfirst($key), join(', ', @{ $value }))); 
+        plog(sprintf('%s: %s', ucfirst($key), join(', ', @{ $value })));
       } else {
         plog(sprintf('%s: %s', ucfirst($key), defined $value ? $value : ''));
       }
@@ -1112,14 +1112,14 @@ outside the repository or inside your own Lume projects is heavily discouraged.
 
 =head1 INTERNALS
 
-I wasn't able to find an "official" way to do Perl docstrings and I don't 
+I wasn't able to find an "official" way to do Perl docstrings and I don't
 really believe heredocs are the answer to this particular problem. This section
 covers the documentation for the internal subroutines used inside this program.
 
-Mind you, this hardly counts as extensive documentation but it should give some 
-context in case you want to learn how to write Perl CLIs, modify this one or 
-even port it to another language. Although, if you are looking for a more 
-complete solution, I recommend checking out Hugo itself or even better, 
+Mind you, this hardly counts as extensive documentation but it should give some
+context in case you want to learn how to write Perl CLIs, modify this one or
+even port it to another language. Although, if you are looking for a more
+complete solution, I recommend checking out Hugo itself or even better,
 contribute to the Lume CLI directly if it's within your possibilities.
 
 =over 4
@@ -1130,7 +1130,7 @@ Normalizes shared CLI flags early so subcommands only worry about their domain c
 
 =item B<extract_subcommand_help_section>
 
-Figures out whether help was asked for a specific verb so docs stay 
+Figures out whether help was asked for a specific verb so docs stay
 focused instead of overwhelming the user with the complete documentation POD
 of this tool.
 
@@ -1141,7 +1141,7 @@ didn't do much testing whatsoever.
 
 =item B<build_environment>
 
-Resolves project boundaries up front so file operations never wander 
+Resolves project boundaries up front so file operations never wander
 outside the intended file tree. This comes with no warranty inside the guix
 shell as I think it can mutate other directories if shared by mistake.
 
@@ -1156,7 +1156,7 @@ Provides reversible cleanup so experimentation feels safe even when deleting who
 
 =item B<cmd_list>
 
-Curates a manifest of entries so you never imagine if all you know are 
+Curates a manifest of entries so you never imagine if all you know are
 what you're told to care about.
 
 ...but after all this time you find your faith has faded...
@@ -1167,7 +1167,7 @@ Gives a quick health check for any Markdown node without opening an editor.
 
 =item B<cmd_draft>
 
-Allows the editor/writer to mark work-in-progress posts without remembering 
+Allows the editor/writer to mark work-in-progress posts without remembering
 exact front matter values.
 
 =item B<cmd_publish>
@@ -1220,7 +1220,7 @@ Deduplicates tag inputs coming from multiple CLI flags to avoid noisy metadata.
 
 =item B<read_markdown_file>
 
-Parses front matter once so the rest of the tool can operate on structured data 
+Parses front matter once so the rest of the tool can operate on structured data
 instead of ad-hoc regexes. (Whatever that means)
 
 =item B<write_markdown_file>
@@ -1241,7 +1241,7 @@ Quotes or unquotes metadata so YAML stays valid without becoming noisy.
 
 =item B<parse_frontmatter>
 
-Translates the YAML header back into Perl structures so commands can reason 
+Translates the YAML header back into Perl structures so commands can reason
 about metadata safely.
 
 =item B<parse_front_value>
@@ -1250,7 +1250,7 @@ Normalizes individual YAML values (especially booleans) to minimize surprises la
 
 =item B<update_markdown_file>
 
-Wraps read/modify/write operations so guard rails like dry-run and 
+Wraps read/modify/write operations so guard rails like dry-run and
 protected paths get enforced automatically.
 
 =item B<truncate_string>

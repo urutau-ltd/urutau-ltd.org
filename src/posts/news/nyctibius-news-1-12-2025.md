@@ -120,7 +120,7 @@ o si prefieres usarlo de forma remota:
     (name 'nyctibius)
     (branch "stable")
     (url "https://github.com/FuncProgLinux/nyctibius")
-    
+
 ;; Si quieres usar el mirror de Codeberg
 (channel
     (name 'nyctibius)
@@ -152,4 +152,4 @@ módulos de Guile Scheme. Solo deberás cambiar todas tus sentencias
 Si eras/eres usuario de GUIX MATE los mismos programas estarán disponibles
 además de algunos extras para seguridad informática del lado de DevOps.
 
-¡Gracias por leer el blog de Urutaú Limited! 💜🦉
+¡Gracias por leer el blog de Urutaú Limited! 🖤🦉

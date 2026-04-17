@@ -6,7 +6,7 @@ type: page
 
 # Recomendaciones 🦉
 
-> Esta página no es un espacio de publicidad.
+> Esta página **no** es un espacio de publicidad.
 
 Aquí hay otros recursos en el internet que podrían interesarte:
 
@@ -22,10 +22,20 @@ Aquí hay otros recursos en el internet que podrían interesarte:
 
 - [GUIX Blog](https://guix.gnu.org/en/blog/): Noticias oficiales de GNU Guix
 
+## Campañas a favor del software libre, la privacidad y la soberanía digital
+
+- [Eliminen las patentes del software](https://endsoftwarepatents.org/)
+- [El DRM es defectuoso por diseño, lo que compras, ya no es tuyo](https://www.defectivebydesign.org/)
+
 ## Canales de YouTube
 
 - [ItsZariep](https://www.youtube.com/@zariep): Canal dedicado al conocimiento
   de sistemas operativos UNIX y lenguajes de programación.
+
+## Ciberseguridad
+
+- [Defensa personal del correo electrónico](https://emailselfdefense.fsf.org/es/)
+- [JShelter una extensión antimalware para el navegador](https://jshelter.org/)
 
 ## Lenguajes de programación
 
@@ -47,6 +57,10 @@ Aquí hay otros recursos en el internet que podrían interesarte:
   como desarrollador.
 
 ## Bibliotecas de Software
+
+### Go
+
+- [zygomys, LISP incrustable en Go](https://github.com/glycerine/zygomys)
 
 ### JavaScript (FrontEnd)
 

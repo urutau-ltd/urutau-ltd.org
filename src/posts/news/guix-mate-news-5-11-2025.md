@@ -57,3 +57,5 @@ correctamente.
 trabajan en Ubuntu). Es una dependencia del paquete `mate-dock-applet` ya
 disponible pero no usable dentro del canal. Y tenerlo en nuestro arsenal de
 paquetes abre la puerta a nuevo software como el dock `plank`.
+
+¡Gracias por leer el blog de Urutaú Limited! 🖤🦉

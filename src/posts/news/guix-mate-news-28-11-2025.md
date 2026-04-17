@@ -120,4 +120,4 @@ la última revisión publicada:
 Puedes consultar todo el software disponible en nuestro canal o el snippet de
 suscripción en [Toys](https://toys.whereis.social/).
 
-¡Gracias por leer el blog de Urutaú Limited! 💜🦉
+¡Gracias por leer el blog de Urutaú Limited! 🖤🦉

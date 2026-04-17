@@ -22,7 +22,6 @@ and nothing more interesting than that.
   [verified with attestations](https://github.com/FuncProgLinux/urutau-ltd.org/attestations)
 - Browser screenreader friendly
 - Partial LibreJS compatibility through `/jslicense/`
-- `security.txt` / `.well-known/security.txt` / `llm.txt` included
 
 ## Usage
 
@@ -90,7 +89,7 @@ fplinux@funguix make fmt
 perl ./build-system/pfmt.pl
 Searching and formatting Guix scheme code...
 Found 1 to format!
-Progress: 1 of 1 formatted files. [#############################################                                                                                                    
+Progress: 1 of 1 formatted files. [#############################################
 Finished formatting Guix Scheme files!
 deno fmt
 /home/fplinux/src/urutau-ltd.org/README.md
