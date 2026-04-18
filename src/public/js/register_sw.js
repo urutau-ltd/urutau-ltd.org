@@ -8,11 +8,15 @@
 
     globalThis.addEventListener("load", async () => {
         try {
-            await navigator.serviceWorker.register("/sw.js", {
-                type: "module",
-                scope: "/",
-                updateViaCache: "none",
-            });
+            const registration = await navigator.serviceWorker.register(
+                "/sw.js",
+                {
+                    type: "module",
+                    scope: "/",
+                    updateViaCache: "none",
+                },
+            );
+            await registration.update();
         } catch (error) {
             console.error("SW: Failed to register service worker.", error);
         }

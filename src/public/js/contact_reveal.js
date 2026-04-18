@@ -3,7 +3,8 @@
 
 (() => {
     const CHALLENGE_PREFIX = "u2";
-    const CHALLENGE_ORDER = [1, 3, 0, 2];
+    const CHALLENGE_PUBLIC_ORDER = [1, 3, 0, 2];
+    const CHALLENGE_RESTORE_ORDER = [2, 0, 3, 1];
     const MASK_SEED = "Urutau::Contact::v2";
 
     const rotateLeft = (values, shift) => {
@@ -51,8 +52,11 @@
             throw new Error("Challenge length is invalid.");
         }
 
-        const orderedParts = CHALLENGE_ORDER.map((index) => parts[index + 2]);
-        const payload = Array.from(decodeBase64Url(orderedParts.join("")));
+        const orderedParts = parts.slice(2);
+        const restoredParts = CHALLENGE_RESTORE_ORDER.map((index) =>
+            orderedParts[index]
+        );
+        const payload = Array.from(decodeBase64Url(restoredParts.join("")));
         const rotated = rotateLeft(payload, getRotation(expectedLength));
         const reversed = rotated.reverse();
         const decoded = reversed.map((value, index) =>
@@ -80,7 +84,9 @@
             throw new Error("Contact challenge is incomplete.");
         }
 
-        const reorderedParts = CHALLENGE_ORDER.map((index) => parts[index]);
+        const reorderedParts = CHALLENGE_PUBLIC_ORDER.map((index) =>
+            parts[index]
+        );
         return `${CHALLENGE_PREFIX}.${length}.${reorderedParts.join(".")}`;
     };
 

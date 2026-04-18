@@ -63,7 +63,7 @@ con `http.NewServeMux(...)`.
 Puedes instalarla con el siguiente comando, en tu proyecto de Go:
 
 ```bash
-$ go get -u codeberg.org/urutau-ltd/aile
+$ go get -u codeberg.org/urutau-ltd/aile/v2
 ```
 
 Aquí tienes un pequeño ejemplo para comenzar:
@@ -75,25 +75,71 @@ import (
     "context"
     "log"
     "net/http"
-    
-    "codeberg.org/urutau-ltd/aile"
+
+    "codeberg.org/urutau-ltd/aile/v2"
 )
 
 func main() {
-    app, err := aile.New()
+    app, err := aile.New(aile.WithAddr(":8080"))
     if err != nil {
         log.Fatal(err)
     }
-    
+
     app.Use(aile.Recovery())
-    
-    app.GET("/", func(w http.ResponseWriter, r *http.Request) {
-        aile.Text(w, http.StatusOK, "Nyctibius Griseus")
+
+    app.GET("/ping", func(w http.ResponseWriter, r *http.Request) {
+        aile.Text(w, http.StatusOK, "ok")
     })
-    
+
     if err := app.Run(context.Background()); err != nil {
         log.Fatal(err)
     }
+}
+```
+
+Ahora puedes probar tu API con: `curl http://localhost:8080/ping`, te debería
+responder con `ok`.
+
+## Vexilo
+
+<!-- Urutaú Vexilo -->
+
+<img style="width: 100px; height: 100px;"
+    src="/img/vexilo.png"
+    alt="A group of feathers"
+    loading="lazy"/>
+
+> Licencia: AGPLv3.0+
+
+> Desarrollo:
+> <chip class="ok">Público en
+> <a href="https://codeberg.org/urutau-ltd/vexilo">Codeberg</a></chip>
+> <chip class="info">Espejo en:
+> <a href="https://github.com/urutau-ltd/vexilo">GitHub</a></chip>
+
+Vexilo es una biblioteca de mecánicas para escribir aplicaciones web con `aile`
+y [HTMX](https://htmx.org/). Es ideal para crear páneles CRUD en HTMX con una
+vista partida de lista/editor. La aplicación sigue teniendo el control del
+rendering y es responsable del HTML del editor y de la tabla usada para mostrar
+entradas. Vexilo solo compone la forma del fragmento principal del editor + el
+`tbody` de la lista con refresh "out of bounds".
+
+```go
+state := requeststate.Parse(r, 10, 100)
+if htmx.IsListRequest(r,
+    "providers-body",
+    []string{"provider-search"},
+    nil,
+) {
+	_ = fragment.WriteHTML(w, fragment.Page{
+		Main: renderList(state),
+		OOB: [][]byte{
+		fragment.OOB("tbody",
+                "providers-body",
+                "innerHTML",
+                renderRows(state)),
+		},
+	})
 }
 ```
 
@@ -120,6 +166,27 @@ en infraestructura personal/familiar/pequeño emprendimiento.
 Todavía se encuentra en estado experimental, por lo que no es posible utilizarlo
 de forma productiva. Puedes volver más tarde a ver si hay actualizaciones por
 acá respecto a este software :)
+
+## Bellbird
+
+<!-- Urutaú Vexilo -->
+
+<img style="width: 100px; height: 100px;"
+    src="/img/bellbird.png"
+    alt="A group of feathers"
+    loading="lazy"/>
+
+> Licencia: GPLv3.0+
+
+> Desarrollo:
+> <chip class="ok">Público en
+> <a href="https://codeberg.org/urutau-ltd/bellbird">Codeberg</a></chip>
+> <chip class="info">Espejo en:
+> <a href="https://github.com/urutau-ltd/bellbird">GitHub</a></chip>
+
+Bellbird es un proxy SOCKS5 que usa criptografía postcuántica, incluye un
+jitter, inyección de paquetes dummy, y normalización de tamaño de frames para
+resistir el análisis de tráfico. La idea está inspirada en `DAITA` de Mullvad.
 
 ---
 

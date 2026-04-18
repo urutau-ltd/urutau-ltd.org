@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.2.1-first-light
+
+- Fixed public website email bugs
+- Improved PWA service worker for a better offline experience
+- Improved `llm.txt`
+- Add more software and recommends
+
 ## v1.2.0-first-light
 
 - Deterministic OG images

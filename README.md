@@ -1,6 +1,6 @@
 # Urutaú Limited Website
 
-> v.1.2.0 (First Light)
+> v.1.2.1 (First Light)
 
 Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging

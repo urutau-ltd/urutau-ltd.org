@@ -3,9 +3,9 @@
     "short_name": "Urutaú LTD",
     "theme_color": "#252521",
     "background_color": "#121210",
-    "display": "fullscreen",
-    "scope": "./",
-    "start_url": "./",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/",
     "description": "Lleva nuestro sitio web a todos lados para leer incluso sin conexión. Sin anuncios ni rastreadores.",
     "id": "a8621e4c-7904-4ac2-986a-b7b7d8d6e9b1",
     "lang": "es",
@@ -624,5 +624,6 @@
         "preferred_width": 200
     },
     "orientation": "any",
-    "dir": "auto"
+    "dir": "auto",
+    "prefer_related_applications": false
 }

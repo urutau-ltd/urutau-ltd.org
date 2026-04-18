@@ -6,7 +6,8 @@ type: page
 
 # Recomendaciones 🦉
 
-> Esta página **no** es un espacio de publicidad.
+> Esta página **no** es un espacio de publicidad. Las recomendaciones que se
+> muestran aquí son a nivel personal.
 
 Aquí hay otros recursos en el internet que podrían interesarte:
 
@@ -31,6 +32,21 @@ Aquí hay otros recursos en el internet que podrían interesarte:
 
 - [ItsZariep](https://www.youtube.com/@zariep): Canal dedicado al conocimiento
   de sistemas operativos UNIX y lenguajes de programación.
+
+- [Low Level](https://www.youtube.com/@LowLevelTV) canal enfocado principalmente
+  en review de vulnerabilidades y temas como programación de bajo nivel,
+  ingeniería inversa y ciberseguridad. _En Inglés_.
+
+- [DistroTube](https://www.youtube.com/@DistroTube) Canal de difusión de
+  software libre, reviews de distribuciones GNU/Linux y tutoriales del mismo.
+  _En Inglés_.
+
+- [Logic Lambda](https://www.youtube.com/@logiclambda) Canal con tutoriales de
+  Python y Scheme usando Dr Racket. _En Inglés_.
+
+- [Linux con Last Dragon](https://www.youtube.com/@lastdragonmx) Canal con temas
+  de configuración avanzada de sistemas operativos GNU/Linux, Unix y Windows
+  Server, además de abordar temas de redes.
 
 ## Ciberseguridad
 

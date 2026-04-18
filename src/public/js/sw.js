@@ -15,7 +15,7 @@ const sw = self;
  * Cache version string. Bump the version to invalidate every cache bucket.
  * @type {string}
  */
-const CACHE_VERSION = "urutau-v1.2.0";
+const CACHE_VERSION = "urutau-v1.2.1";
 
 /**
  * Cache name that stores the application shell and other immutable assets.
@@ -34,7 +34,7 @@ const PAGES_CACHE_NAME = `pages-${CACHE_VERSION}`;
  * Changing this path also requires adding it to {@link APP_SHELL_URLS}.
  * @type {string}
  */
-const FALLBACK_DOCUMENT_URL = "/404.html";
+const FALLBACK_DOCUMENT_URL = "/offline.html";
 
 /**
  * Maximum number of page entries to keep in the {@link PAGES_CACHE_NAME}.
@@ -47,7 +47,7 @@ const MAX_PAGE_ENTRIES = 40;
  * @type {RegExp}
  */
 const STATIC_ASSET_PATTERN =
-    /\.(?:css|js|png|jpg|jpeg|gif|svg|webp|woff2?|eot|ttf|otf)$/;
+    /\.(?:css|js|json|map|ico|png|jpg|jpeg|gif|svg|webp|avif|woff2?|eot|ttf|otf|webmanifest|txt|xml)$/;
 
 /**
  * Hostnames treated as development environments. We keep caching logic relaxed
@@ -90,7 +90,17 @@ const APP_SHELL_URLS = [
     "/",
     "/index.html",
     "/404.html",
+    "/offline.html",
+    "/about/",
+    "/contact/",
+    "/posts/",
+    "/privacy-policy/",
+    "/recommends/",
+    "/software/",
+    "/libre-licenses/",
+    "/manifest.json",
     "/js/contact-reveal.js",
+    "/js/pagefind-init.js",
     "/js/register-sw.js",
     "/missing.css",
     "/urutau.css",
@@ -252,11 +262,7 @@ const staleWhileRevalidate = async (request) => {
         return cachedResponse;
     }
 
-    return fetchAndUpdate.catch(async () => {
-        /** @type {Response | undefined} */
-        const fallback = await getFallbackDocument();
-        return fallback || createOfflineResponse();
-    });
+    return fetchAndUpdate.catch(() => createOfflineResponse());
 };
 
 /**
@@ -368,6 +374,11 @@ const handleActivate = (event) => {
 const handleFetch = (event) => {
     const { request } = event;
 
+    // Chrome can send these requests that the SW cannot fulfill safely.
+    if (request.cache === "only-if-cached" && request.mode !== "same-origin") {
+        return;
+    }
+
     if (isLocalhost) {
         if (request.url.includes("hot-reload")) {
             return;
@@ -394,10 +405,7 @@ const handleFetch = (event) => {
     }
 
     event.respondWith(
-        fetch(request).catch(async () => {
-            const fallback = await getFallbackDocument();
-            return fallback || createOfflineResponse();
-        }),
+        fetch(request).catch(() => createOfflineResponse()),
     );
 };
 
