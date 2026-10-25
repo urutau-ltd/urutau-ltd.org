@@ -23,15 +23,14 @@ use POSIX;
 use Getopt::Long;
 use Pod::Usage;
 
-use Readonly;
-Readonly::Scalar my $RED => "\e[31m";
-Readonly::Scalar my $GREEN => "\e[32m";
-Readonly::Scalar my $YELLOW => "\e[33m";
-Readonly::Scalar my $BLUE => "\e[34m";
-Readonly::Scalar my $PURPLE => "\e[35m";
-Readonly::Scalar my $RESET => "\e[0m";
+my $RED = "\e[31m";
+my $GREEN = "\e[32m";
+my $YELLOW = "\e[33m";
+my $BLUE = "\e[34m";
+my $PURPLE = "\e[35m";
+my $RESET = "\e[0m";
 
-our $VERSION = version->declare("v1.1.0");
+our $VERSION = version->declare("v1.5.1");
 
 my $help = 0;
 my $verbose_help = 0;

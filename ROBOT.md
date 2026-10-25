@@ -92,7 +92,7 @@ MCP server at `scripts/urutau_mcp.ts` exposes structured symbol lookup for
 
 | Tool                  | Returns                                        |
 | --------------------- | ---------------------------------------------- |
-| `whereis(name)`       | Exported definitions matching `name`           |
+| `where_is(name)`      | Exported definitions matching `name`           |
 | `outline(module)`     | All exports from `module`                      |
 | `references_to(name)` | Word-boundary matches for `name` across source |
 
@@ -186,7 +186,7 @@ touches its domain; do not preload.
 | `architecture.md`    | Build pipeline, source layout, component map, front matter       |
 | `fonts-and-css.md`   | Font stack, missing.css, CSS overrides                           |
 | `testing.md`         | Deno test patterns, test locations, introducing/correcting tests |
-| `codebase-search.md` | MCP tool usage (`whereis`, `outline`, `references_to`)           |
+| `codebase-search.md` | MCP tool usage (`where_is`, `outline`, `references_to`)          |
 
 ## 9. External documentation
 

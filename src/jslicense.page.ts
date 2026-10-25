@@ -63,6 +63,16 @@ export default function* () {
                 <td><a rel="license" href="https://www.gnu.org/licenses/license-list.html#Expat">Expat (MIT)</a></td>
                 <td><a href="https://github.com/pagefind/pagefind">Upstream source</a></td>
             </tr>
+            <tr>
+                <td><a href="/js/feed.js">feed.js</a></td>
+                <td><a rel="license" href="https://www.gnu.org/licenses/license-list.html#FreeBSD">BSD-2-Clause</a></td>
+                <td><a href="https://github.com/bigskysoftware/missing.css">Upstream source</a></td>
+            </tr>
+            <tr>
+                <td><a href="/js/19.js">19.js</a></td>
+                <td><a rel="license" href="https://www.gnu.org/licenses/license-list.html#FreeBSD">BSD-2-Clause</a></td>
+                <td><a href="https://github.com/bigskysoftware/missing.css">Upstream source</a></td>
+            </tr>
         </tbody>
     </table>
 </body>

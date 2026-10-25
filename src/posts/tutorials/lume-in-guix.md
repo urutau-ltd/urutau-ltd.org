@@ -259,7 +259,7 @@ ENV DENO_NO_UPDATE_CHECK=disable
 
 LABEL org.opencontainers.image.authors="Urutaú Limited"
 LABEL org.opencontainers.image.title="urutau-ltd.org"
-LABEL org.opencontainers.miage.licenses="AGPL-v3.0+"
+LABEL org.opencontainers.image.licenses="AGPL-v3.0+"
 LABEL org.opencontainers.image.url=https://sl.urutau-ltd.org/urutau-ltd.org/
 LABEL org.opencontainers.image.source=https://sl.urutau-ltd.org/urutau-ltd.org/
 LABEL org.opencontainers.image.description="Static site builder image"
@@ -311,6 +311,11 @@ const site: Site = lume({
     },
 });
 ```
+
+> [!NOTE]
+> Este fragmento corresponde al flujo anterior. En el repositorio actual el
+> objetivo `oci-build` fue reemplazado por `oci-run`; consulta el `Makefile`
+> vigente.
 
 Puedes probar la construccion de tu sitio con:
 

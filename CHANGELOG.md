@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## v1.5.1-first-light
+
+- Add `scripts/launch-flatpak.scm` to launch the ungoogled-chromium flatpak with
+  the Chrome DevTools Protocol debug port for the `chrome-devtools` MCP server
+- Add experimental maak support porting the Makefile targets to `maak.scm`
+- Add a `maak` package (v0.8.3) to the Guix manifest
+- Fill the missing Guix development shell tools: `findutils`, `grep`, `sed`,
+  `gawk`, `diffutils`, `perl-readonly`, `flatpak` and `nix`
+- Replace the deprecated `perltidy` with `perl-tidy`
+- Complete the service worker shell precache and skip the first-install reload
+- Fix the Docker image build and align the version label with v1.5.1
+- Fix `make fmt` calling the removed `pfmt.pl`
+- Emit `/.well-known/` at the correct path by limiting `slugifyUrls` to HTML
+- Drop the broken Windows PWA icon entries from the manifest
+- Add the missing.css scripts to the LibreJS table
+- Move the unpublished essay to `drafts/`
+- Fix the OpenCode article and review commands
+- Update to Lume 3.3.3, bump the Deno image to 2.9.8, `markdown-it-anchor` to 10
+  and the TOC plugin to 1.0.8
+
 ## v1.5.0-first-light
 
 - Improve built in MCP server security/quality of life

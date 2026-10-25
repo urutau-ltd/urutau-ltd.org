@@ -15,7 +15,7 @@ const sw = self;
  * Cache version string. Bump the version to invalidate every cache bucket.
  * @type {string}
  */
-const CACHE_VERSION = "urutau-v1.5.0";
+const CACHE_VERSION = "urutau-v1.5.1";
 
 /**
  * Cache name that stores the application shell and other immutable assets.
@@ -43,11 +43,18 @@ const FALLBACK_DOCUMENT_URL = "/offline.html";
 const MAX_PAGE_ENTRIES = 40;
 
 /**
+ * Maximum time, in milliseconds, a navigation may wait on the network before
+ * falling back to the cached copy.
+ * @type {number}
+ */
+const NAV_TIMEOUT_MS = 8000;
+
+/**
  * Static asset pattern used for cache lookups (CSS, JS, fonts, images, etc.).
  * @type {RegExp}
  */
 const STATIC_ASSET_PATTERN =
-    /\.(?:css|js|json|map|ico|png|jpg|jpeg|gif|svg|webp|avif|woff2?|eot|ttf|otf|webmanifest|txt|xml)$/;
+    /\.(?:css|js|json|map|ico|png|jpg|jpeg|gif|svg|webp|avif|woff2?|eot|ttf|otf|webmanifest|txt|xml|rss)$/;
 
 /**
  * Hostnames treated as development environments. We keep caching logic relaxed
@@ -101,6 +108,8 @@ const APP_SHELL_URLS = [
     "/libre-licenses/",
     "/manifest.json",
     "/js/contact-reveal.js",
+    "/js/feed.js",
+    "/js/19.js",
     "/js/pagefind-init.js",
     "/js/register-sw.js",
     "/missing.css",
@@ -180,18 +189,23 @@ const isCacheableResponse = (response) =>
     );
 
 /**
- * Creates a stable same-origin cache key by removing tracking parameters while
- * preserving the real path.
+ * Creates a stable same-origin cache key. Strips tracking parameters, or the
+ * whole query string for navigations so query variants share one cache entry.
  * @param {Request} request
+ * @param {{ stripSearch?: boolean }} [options]
  * @returns {string}
  */
-const getCacheKey = (request) => {
+const getCacheKey = (request, { stripSearch = false } = {}) => {
     /** @type {URL} */
     const requestUrl = new URL(request.url);
 
-    for (const key of Array.from(requestUrl.searchParams.keys())) {
-        if (TRACKING_QUERY_PARAMS.has(key)) {
-            requestUrl.searchParams.delete(key);
+    if (stripSearch) {
+        requestUrl.search = "";
+    } else {
+        for (const key of Array.from(requestUrl.searchParams.keys())) {
+            if (TRACKING_QUERY_PARAMS.has(key)) {
+                requestUrl.searchParams.delete(key);
+            }
         }
     }
 
@@ -236,6 +250,21 @@ const trimCache = async (cacheName, maxEntries) => {
 };
 
 /**
+ * Fetches and stores a single shell asset. The install handler uses it so one
+ * failing asset does not abort precaching of the rest of the shell.
+ * @param {Cache} cache
+ * @param {string} url
+ * @returns {Promise<void>}
+ */
+const cacheShellAsset = (cache, url) =>
+    fetch(url).then((response) => {
+        if (!isCacheableResponse(response)) {
+            throw new Error(`Uncacheable shell asset: ${url}`);
+        }
+        return cache.put(url, response);
+    });
+
+/**
  * Stale-while-revalidate strategy for immutable static assets.
  * Responds immediately with a cached copy (if any) while updating the cache in
  * the background for future visits.
@@ -267,6 +296,21 @@ const staleWhileRevalidate = async (request) => {
 };
 
 /**
+ * Fetches a request that aborts after `timeoutMs`, letting network-first
+ * navigations fall back to the cache instead of hanging on a stalled network.
+ * @param {Request} request
+ * @param {number} timeoutMs
+ * @returns {Promise<Response>}
+ */
+const fetchWithTimeout = (request, timeoutMs) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(request, { signal: controller.signal }).finally(() => {
+        clearTimeout(timer);
+    });
+};
+
+/**
  * Network-first strategy for HTML pages (blog posts, entries, etc.).
  * Falls back to cached content when offline, then to the offline document.
  * @param {Request} request
@@ -275,11 +319,25 @@ const staleWhileRevalidate = async (request) => {
 const networkFirstPage = async (request, preloadResponsePromise) => {
     /** @type {Cache} */
     const cache = await caches.open(PAGES_CACHE_NAME);
-    const cacheKey = getCacheKey(request);
+    const cacheKey = getCacheKey(request, { stripSearch: true });
 
     try {
         /** @type {Response | undefined} */
-        const preloadedResponse = await preloadResponsePromise;
+        const preloadedResponse = await Promise.race([
+            preloadResponsePromise,
+            new Promise((_, reject) =>
+                setTimeout(
+                    () =>
+                        reject(
+                            new DOMException(
+                                "Navigation preload timed out.",
+                                "TimeoutError",
+                            ),
+                        ),
+                    NAV_TIMEOUT_MS,
+                )
+            ),
+        ]).catch(() => undefined);
         if (isCacheableResponse(preloadedResponse)) {
             await cache.put(cacheKey, preloadedResponse.clone());
             await trimCache(PAGES_CACHE_NAME, MAX_PAGE_ENTRIES);
@@ -287,7 +345,7 @@ const networkFirstPage = async (request, preloadResponsePromise) => {
         }
 
         /** @type {Response} */
-        const response = await fetch(request);
+        const response = await fetchWithTimeout(request, NAV_TIMEOUT_MS);
         if (isCacheableResponse(response)) {
             await cache.put(cacheKey, response.clone());
             await trimCache(PAGES_CACHE_NAME, MAX_PAGE_ENTRIES);
@@ -337,12 +395,20 @@ const cleanupLegacyCaches = async () => {
 const handleInstall = (event) => {
     sw.skipWaiting();
     event.waitUntil(
-        caches.open(STATIC_CACHE_NAME)
-            .then((cache) => cache.addAll(APP_SHELL_URLS))
-            .then(() => log("Precaching completed."))
-            .catch((error) => {
-                console.warn("[SW] Precaching failed:", error);
-            }),
+        caches.open(STATIC_CACHE_NAME).then((cache) =>
+            Promise.allSettled(
+                APP_SHELL_URLS.map((url) => cacheShellAsset(cache, url)),
+            )
+        ).then((results) => {
+            const failed = results.filter((result) =>
+                result.status === "rejected"
+            ).length;
+            log(`Precached ${
+                APP_SHELL_URLS.length - failed
+            }/${APP_SHELL_URLS.length}.`);
+        }).catch((error) => {
+            console.warn("[SW] Precaching failed:", error);
+        }),
     );
 };
 
@@ -410,23 +476,6 @@ const handleFetch = (event) => {
     );
 };
 
-/**
- * Lightweight message handler so the page can trigger lifecycle shortcuts.
- * Example usage inside the client:
- * navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
- * @param {any} event
- * @returns {void}
- */
-const handleMessage = (event) => {
-    if (!event.data) {
-        return;
-    }
-    if (event.data.type === "SKIP_WAITING") {
-        sw.skipWaiting();
-    }
-};
-
 sw.addEventListener("install", handleInstall);
 sw.addEventListener("activate", handleActivate);
 sw.addEventListener("fetch", handleFetch);
-sw.addEventListener("message", handleMessage);

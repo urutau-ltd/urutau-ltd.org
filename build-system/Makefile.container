@@ -17,18 +17,20 @@
 
 TAG := sl.urutau-ltd.org/urutau-ltd/urutau-ltd:latest
 
-image: ## Make a builder podman image for this site
+image: ## Make a runtime podman image for this site
 	@echo "==> [LUME/PODMAN]: Building podman image..."
 	podman build -t $(TAG) .
 	@echo "==> [LUME/PODMAN]: Finished building podman image!"
 
-compose-up:
+compose-up: ## Bring up the podman compose services
 	podman compose up -d
 
-compose-down:
+compose-down: ## Take down the podman compose services
 	podman compose down
 
-compose-restart: compose-up compose-down
+compose-restart: ## Restart the podman compose services
+	@podman compose down
+	@podman compose up -d
 
 oci-run: ## Test the built image locally by running it
 	@echo "==> [LUME/PODMAN-RUN]: Running site image locally on port 8000..."

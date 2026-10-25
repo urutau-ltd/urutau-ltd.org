@@ -17,54 +17,59 @@
         }
     },
     "lsp": true,
-    "permission": {
-        "doom_loop": "deny",
-        "*": "ask",
+    "permissions": [
+        { "action": "*", "resource": "*", "effect": "ask" },
         /* Given our generation policy it makes more sense to pair up with the
            robot instead of allowing it to edit the source for us. It also
            saves tokens which not many people can afford wasting. */
-        "edit": "deny",
+        { "action": "edit", "resource": "*", "effect": "deny" },
         // DON'T GO OUTSIDE THE PROJECT!
-        "external_directory": "deny",
-        /* Robots sometimes excel being asshats and attempt to find documentation
-        by reading via find / or inside the node_modules directory, hopefully
-        this should try to stop such nonsense. */
-        "bash": {
-            "*": "ask",
-            "rm": "deny",
-            "find *": "deny",
-            "locate *": "deny",
-            "updatedb*": "deny",
-            "*node_modules*": "deny",
-            "true": "deny"
-        },
-        "read": {
-            "*": "ask",
-            "node_modules/**": "deny"
-        },
-        "glob": {
-            "*": "ask",
-            "node_modules/**": "deny",
-            "output/**": "deny"
-        },
-        "grep": {
-            "*": "ask",
-            "node_modules/**": "deny"
-        }
-    },
+        { "action": "external_directory", "resource": "*", "effect": "deny" },
+        /* Robots sometimes excel being asshats and attempt to read
+           documentation from system paths or dependency folders, hopefully
+           this should try to stop such nonsense. */
+        { "action": "shell", "resource": "rm *", "effect": "deny" },
+        { "action": "shell", "resource": "find *", "effect": "deny" },
+        { "action": "shell", "resource": "locate *", "effect": "deny" },
+        { "action": "shell", "resource": "updatedb*", "effect": "deny" },
+        { "action": "shell", "resource": "*node_modules*", "effect": "deny" },
+        { "action": "shell", "resource": "true", "effect": "deny" },
+        { "action": "read", "resource": "node_modules/*", "effect": "deny" },
+        { "action": "glob", "resource": "node_modules/*", "effect": "deny" },
+        { "action": "glob", "resource": "output/*", "effect": "deny" },
+        { "action": "grep", "resource": "node_modules/*", "effect": "deny" }
+    ],
     "mcp": {
-        "urutau": {
-            "type": "local",
-            "command": [
-                "deno",
-                "run",
-                "-P=urutau_mcp",
-                "scripts/urutau_mcp.ts"
-            ],
-            "enabled": true
+        "servers": {
+            "urutau": {
+                "type": "local",
+                "command": [
+                    "deno",
+                    "run",
+                    "-P=urutau_mcp",
+                    "scripts/urutau_mcp.ts"
+                ]
+            },
+            "chrome-devtools": {
+                "type": "local",
+                "command": [
+                    "deno",
+                    "x",
+                    "--allow-net=127.0.0.1:9222",
+                    "--allow-env",
+                    "--allow-read",
+                    "--allow-write",
+                    "--allow-sys",
+                    "--allow-run",
+                    "npm:chrome-devtools-mcp@1.12.0",
+                    "--browser-url=http://127.0.0.1:9222"
+                ]
+            }
         }
     },
-    "subagent_depth": 0,
+    "experimental": {
+        "subagent_depth": 0
+    },
     "share": "disabled",
     "references": {
         "missing-css": {
@@ -72,7 +77,7 @@
             "description": "Canonical docs for missing.css utility classes, components and variables. Consult before using or suggesting any missing.css class"
         },
         "lume": {
-            "path": "https://lume.land/docs/",
+            "path": "https://lume.land/docs/overview/about-lume/",
             "description": "Canonical Lume SSG docs. Consult before changing any .ts/.tsx/.js or .jsx files, plugins or page/layout behaviour."
         }
     }

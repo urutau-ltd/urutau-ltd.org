@@ -12,7 +12,7 @@
                 "type": "inference",
                 "policy": "ALLOWED_WITH_DISCLOSURE",
                 "description": "LLMs may reference this site's content if used to assist users in understanding FOSS and privacy",
-                "reference": "/llm.txt"
+                "reference": "/llms.txt"
             },
             {
                 "type": "web_scraping",
@@ -27,7 +27,7 @@
             "cookies": false
         },
         "llm_usage_policy": {
-            "url": "/llm-policy.md",
+            "url": "/llm-policy/",
             "type": "internal_contribution_guidelines",
             "note": "Internal policy for project contributors using LLM assistance"
         },

@@ -123,7 +123,7 @@ site.use(base_path());
 
 /* Slug-ify resources */
 site.use(slugifyUrls({
-    extensions: "*",
+    extensions: [".html"],
     replace: {
         "Á": "A",
         "É": "E",

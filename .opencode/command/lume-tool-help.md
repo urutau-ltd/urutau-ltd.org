@@ -14,3 +14,6 @@ Commands:
 - /lume-tool-debt: Harvest DEBT: comments into a tracked ledger
 - /lume-tool-help: Print this screen
 - /lume-tool-review: Over-engineering review of the current changes
+- /new-article: Create a new article
+- /review-article: Review a technical article
+- /review-essay: Review an essay

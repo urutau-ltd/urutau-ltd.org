@@ -6,8 +6,9 @@ vendor
 .dockerignore
 .gitignore
 LICENSE
-Dockefile
+Dockerfile
 README.md
-genmail.sh
+genmail.pl
 manifest.scm
 _cache
+.env

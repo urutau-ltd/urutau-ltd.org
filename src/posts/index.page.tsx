@@ -1,6 +1,7 @@
 import { Data } from "lume/types.ts";
 import { createPostsArchiveUrl, createTagUrl } from "$urutau/lib/url_utils.ts";
 import { escape as escapeHtml } from "@std/html";
+import { PaginationInfo } from "lume/plugins/paginate.ts";
 
 export const title: string = "Archivo de publicación";
 export const type: string = "page";
@@ -125,7 +126,7 @@ export default function* (data: Lume.Data) {
     }) as Lume.Data[];
 
     for (const page of pages) {
-        const pagination = page.pagination as NonNullable<
+        const pagination: PaginationInfo = page.pagination as NonNullable<
             Lume.Data["pagination"]
         >;
         yield {

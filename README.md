@@ -1,6 +1,6 @@
 # Urutaú Limited Website
 
-> v1.5.0 (First Light)
+> v1.5.1 (First Light)
 
 Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging
@@ -37,7 +37,7 @@ and nothing more interesting than that.
 Run `make` to see targets and their documentation
 
 ```bash
-=== [URUTAU LIMITED GNU MAKEFILE + PERL BUILD SYSTEM v1.1.0] ===
+=== [URUTAU LIMITED GNU MAKEFILE + PERL BUILD SYSTEM v1.5.1] ===
 
 Usage:
   make [target] [variables]
@@ -45,24 +45,32 @@ Usage:
 Target(s):
   build                         Builds the productive lume Site
   ci                            Checks the code quality
+  compose-down                  Take down the podman compose services
+  compose-restart               Restart the podman compose services
+  compose-up                    Bring up the podman compose services
   dev                           Starts a watch server for lume to show changes
   env                           Starts a development guix shell for this channel
-  fmt                           Format the Guile Scheme source code of this repostory
-  image                         Make a builder podman image for this site
+  fmt                           Format the source code with deno fmt
+  image                         Make a runtime podman image for this site
   lint                          Lint source code across the repository
-  oci-build                     Builds the site using the image
+  oci-run                       Test the built image locally by running it
   push-image                    Push OCI image to the container registry
+  serve                         Serve the pre-built site using Lume's production server
 
 Variable(s):
   MAKE_DIR                      The directory where the build system Makefiles are stored (default: build-system)
   USER_HOME                      (default: $${HOME})
   DENO_BIN_DIR                   (default: $(USER_HOME)/.deno/bin)
-  TAG                            (default: sl.urutau-ltd.org/urutau-ltd/builder:latest)
+  TAG                            (default: sl.urutau-ltd.org/urutau-ltd/urutau-ltd:latest)
 
 Example(s):
   make dev
   make fmt
 ```
+
+There's also an experimental [maak](https://codeberg.org/jjba23/maak) port of
+the same build automation; run `maak --list` to see the tasks. The Makefiles
+remain authoritative.
 
 ## Usage with Guix
 
@@ -87,25 +95,20 @@ Run commands with the provided Makefile + Perl build system:
 1. Open a new Guix shell development environment
 
 ```shell
-$ make dev
+$ make env
 ```
 
 > [!NOTE]
 > The shell environment doesn't persist changes by default to build things in a
 > docker --no-cache kind of way. If you wish to change this, make sure to add
-> `--expose=${{HOME}}/.cache/` to the `Makefile.dev` file inside the
-> `build-system/` directory.
+> `--expose=$HOME/.cache/` to the `Makefile.dev` file inside the `build-system/`
+> directory.
 
 2. Now you can run other `make` targets for development:
 
 ```shell
 fplinux@funguix make fmt
-==> [LUME/FMT]: Formatting Scheme source code...
-perl ./build-system/pfmt.pl
-Searching and formatting Guix scheme code...
-Found 1 to format!
-Progress: 1 of 1 formatted files. [#############################################
-Finished formatting Guix Scheme files!
+==> [LUME/FMT]: Formatting source code...
 deno fmt
 /home/fplinux/src/urutau-ltd.org/README.md
 Checked 18 files
@@ -195,9 +198,9 @@ they waste your time. `make ci` runs it too.
 
 ## Building on Podman
 
-Run `make image` to build a Podman `builder` image.
+Run `make image` to build the runtime Podman image.
 
-Run `make oci-build` to build the lume site using the generated builder image.
+Run `make oci-run` to run it locally on port 8000.
 
 ## The `genmail.pl` script
 
@@ -222,7 +225,15 @@ When auditing existing entries the new options come in handy:
 ```
 
 For people and tools that care about policy files, the site also ships
-`/security.txt`, `/.well-known/security.txt`, `/llm.txt` and `/jslicense/`.
+`/.well-known/security.txt`, `/llms.txt` and `/jslicense/`.
+
+## Browser debugging
+
+`scripts/launch-flatpak.scm` launches the ungoogled-chromium flatpak with the
+Chrome DevTools Protocol endpoint on port 9222 so the `chrome-devtools` MCP
+server configured in `opencode.jsonc` can attach. It skips the launch when an
+endpoint is already listening, and removes the throwaway profile
+(`/tmp/urutau-debug`) once chromium exits.
 
 ## Deploy
 

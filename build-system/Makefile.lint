@@ -19,5 +19,5 @@
 
 lint: ## Lint source code across the repository
 	@echo "==> [HAUNT/LINT]: Linting perl code!"
-	@perlcritic --statistics **/*.pl
+	@perlcritic --statistics genmail.pl build-system/help.pl
 	@echo "==> [HAUNT/LINT]: Finished code linting!"

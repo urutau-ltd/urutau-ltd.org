@@ -7,9 +7,25 @@
         return;
     }
 
+    /**
+     * Reloads the page once when an existing page gets a new service
+     * worker, so the fresh shell serves instead of the stale loaded
+     * document. First installs are skipped and the reload flag
+     * prevents a loop.
+     */
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!hadController || refreshing) {
+            return;
+        }
+        refreshing = true;
+        globalThis.location.reload();
+    });
+
     globalThis.addEventListener("load", async () => {
         try {
-            const registration = await navigator.serviceWorker.register(
+            await navigator.serviceWorker.register(
                 "/sw.js",
                 {
                     type: "module",
@@ -17,7 +33,6 @@
                     updateViaCache: "none",
                 },
             );
-            await registration.update();
         } catch (error) {
             console.error("SW: Failed to register service worker.", error);
         }

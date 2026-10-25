@@ -139,4 +139,4 @@ unavoidable — should be consciously made.
 
 ---
 
-_This file follows the llm.txt convention. Last updated: 2026._
+_This file follows the llms.txt convention. Last updated: 2026._

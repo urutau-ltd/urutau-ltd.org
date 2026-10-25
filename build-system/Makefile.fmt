@@ -16,8 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 .PHONY: fmt
-fmt: ## Format the Guile Scheme source code of this repostory
-	@echo "==> [LUME/FMT]: Formatting Scheme source code..."
-	perl ./build-system/pfmt.pl
+fmt: ## Format the source code with deno fmt
+	@echo "==> [LUME/FMT]: Formatting source code..."
 	deno fmt
 	@echo "==> [LUME/FMT]: Finished formatting source code!"

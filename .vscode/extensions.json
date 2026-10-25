@@ -2,6 +2,7 @@
     "recommendations": [
         "denoland.vscode-deno",
         "editorconfig.editorconfig",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "jeandeaual.scheme"
     ]
 }

@@ -6,7 +6,8 @@ import { patchOGPath } from "$urutau/lib/og_patcher.ts";
  * og_images plugin in Lume static site generator. It scans through the specified target directory,
  * looks for post directories, and updates the OG image paths in the index.html files to include the correct slug.
  *
- * This can be used as both a hook and a standalone script. See the README for usage instructions.
+ * Run standalone with `deno run -P=lume scripts/fix_og_paths.ts [dir]`; it is
+ * also used as a build hook.
  *
  * @param {string} targetDir - The target directory containing post directories.
  * @returns {Promise<void>} - A promise that resolves when the operation is complete either successfully or with an error.

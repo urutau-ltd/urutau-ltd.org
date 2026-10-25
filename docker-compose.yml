@@ -3,7 +3,7 @@ services:
     urutau-dev:
         build: .
         container_name: urutau-ltd-dev
-        env_file: .env
+        # env_file: .env
         environment:
             URUTAU_PORT: "8000"
         expose:
