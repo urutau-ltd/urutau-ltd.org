@@ -44,6 +44,6 @@ LABEL org.opencontainers.image.url=https://sl.urutau-ltd.org/urutau-ltd.org/
 LABEL org.opencontainers.image.source=https://sl.urutau-ltd.org/urutau-ltd.org/
 LABEL org.opencontainers.image.description="Main website docker image"
 LABEL org.opencontainers.image.vendor="Urutaú Limited."
-LABEL org.opencontainers.image.version="v1.5.1-first-light"
+LABEL org.opencontainers.image.version="v1.5.2-first-light"
 
 CMD ["deno", "task", "start"]

@@ -122,7 +122,7 @@ func handleProviders(w http.ResponseWriter, r *http.Request) {
 
     switch {
     case htmx.IsBoosted(r), !isHTMX(r):
-        // página completa — responsabilidad de la aplicación
+        // página completa: responsabilidad de la aplicación
         renderFullPage(w, state)
 
     case providers.IsListRequest(r):
@@ -169,3 +169,23 @@ forma:
 ...
 <OOB[N-1]>
 ```
+
+---
+
+## Límites
+
+`EditorWithList` solo devuelve error cuando `Targets.ListBody` está vacío. Un
+`Update.Editor` vacío o un `Update.List` vacío no son errores: el paquete
+escribe lo que le pases, aunque el resultado sea un fragmento sin contenido.
+
+`WriteEditorWithList` no fija el status. Si el guardado falla y quieres un `422`
+o un `500`, llama a `w.WriteHeader` antes o escribe tu propia respuesta. El
+content type sí queda en `text/html; charset=utf-8`.
+
+La lista se inserta como `innerHTML` del `tbody`, no como HTML completo. Si tu
+template devuelve `<tr>` sueltos, están en el formato correcto. Si devuelve una
+tabla completa, vas a anidar una tabla dentro de un `tbody`.
+
+El orden de los OOB es el del slice: primero el refresh de la lista, después los
+fragmentos de `Update.OOB`. Si un aviso depende de que la lista ya esté
+actualizada, ese orden es el que necesitas.

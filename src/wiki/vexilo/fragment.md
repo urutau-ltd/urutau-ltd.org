@@ -65,7 +65,7 @@ Para cualquier tag excepto `tbody`:
 <tag id="..." hx-swap-oob="...">inner</tag>
 ```
 
-#### Caso especial: `tbody`
+#### Caso especial de `tbody`
 
 Cuando `tag` es `tbody`, el fragmento se envuelve en una tabla oculta para que
 el HTML resultante sea válido y HTMX pueda procesarlo:
@@ -109,3 +109,19 @@ frag := fragment.OOB("section", "provider-editor", "outerHTML", []byte(`<p>Hello
 
 La aplicación es responsable del HTML que pasa a `WriteHTML` y a `OOB`. Vexilo
 no escapa ni sanitiza nada.
+
+---
+
+## Atributos y confianza
+
+`WriteHTML` no llama a `WriteHeader`. El status queda en 200 salvo que lo hayas
+escrito antes; el content type sí se fija siempre.
+
+`OOB(tag, id, swap, inner)` inserta `tag`, `id` y `swap` sin escaparlos. El
+paquete asume que son constantes de la aplicación. Si algún valor viene de la
+petición, valídalo contra una lista cerrada o escápalo antes de llamar. Lo mismo
+aplica a `inner`: es HTML del llamador y se escribe tal cual.
+
+El caso `tbody` envuelve el fragmento en `<table hidden aria-hidden="true">`.
+Ese wrapper no es decorativo: sin él, un `<tbody>` suelto no es HTML válido y
+HTMX puede no procesarlo como esperas.

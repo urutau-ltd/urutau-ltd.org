@@ -99,3 +99,23 @@ if htmx.IsBoosted(r) {
     // renderizar página completa
 }
 ```
+
+---
+
+## Valores exactos
+
+Vexilo compara los valores de las cabeceras de forma exacta. `HX-Request` tiene
+que ser `true`, no `True` ni `1`. `HX-Boosted` sigue la misma regla. Los
+triggers se comparan sin recortar espacios: si el navegador manda
+`"provider-search "`, no coincide con `"provider-search"`.
+
+`normalizeTarget` solo quita un `#` inicial. Acepta `providers-body` y
+`#providers-body`, pero no corrige espacios ni selectores más complejos. Si
+necesitas comparar un selector CSS completo, hazlo en tu handler.
+
+## Relación con aile/x/htmx
+
+`aile/x/htmx` usa `EqualFold` y recorta espacios en varios helpers. Vexilo es
+más estricto porque su objetivo es clasificar peticiones de una vista partida,
+no leer cabeceras sueltas. No mezcles las dos expectativas en el mismo handler:
+si usas Vexilo para decidir la rama, deja que Vexilo haga la comparación.

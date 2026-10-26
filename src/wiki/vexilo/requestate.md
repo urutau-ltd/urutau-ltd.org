@@ -74,3 +74,20 @@ state := requeststate.Parse(r, 10, 100)
 // state.Query == "abc"
 // state.Limit == 20
 ```
+
+---
+
+## Detalles que conviene saber
+
+`Parse` llama a `r.ParseForm` e ignora el error. Si el body está mal formado o
+el content type no es `application/x-www-form-urlencoded`, `r.Form` puede quedar
+vacío y el resultado será `Query` vacío con `defaultLimit`. No es un parser
+estricto; es un lector de conveniencia.
+
+`limit` se parsea con `strconv.Atoi`. Un valor con espacios, por ejemplo
+`" 25"`, no es válido y cae al default. `maxLimit <= 0` desactiva el tope: el
+valor parseado se usa tal cual, siempre que sea positivo.
+
+Cuando la misma clave viene en la query string y en el body de un POST,
+`r.Form.Get` devuelve el valor del body. Eso es comportamiento de `net/http`, no
+una decisión de Vexilo.

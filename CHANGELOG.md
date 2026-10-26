@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v1.5.2-first-light
+
+- Expand the wiki with documentation for Aile, Bellbird, Vexilo, forge-cli and
+  vite-plugin-librejs
+- Add verification, diagnostic and workflow pages that go beyond the project
+  READMEs
+- Improve the wiki index with project descriptions and accurate page counts
+- Move Gavia to the discontinued archive and add forge-cli and
+  vite-plugin-librejs to the software catalog
+- Remove the Nyctibius wiki page and update its software entry
+- Bump the service worker cache version to invalidate the old application shell
+
 ## v1.5.1-first-light
 
 - Add `scripts/launch-flatpak.scm` to launch the ungoogled-chromium flatpak with

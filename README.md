@@ -1,6 +1,6 @@
 # Urutaú Limited Website
 
-> v1.5.1 (First Light)
+> v1.5.2 (First Light)
 
 Here lies the source code of the _Urutaú Limited_ pseudo-organization. This
 website acts just as a _"formal"_ presentation card and it's used for blogging
@@ -37,7 +37,7 @@ and nothing more interesting than that.
 Run `make` to see targets and their documentation
 
 ```bash
-=== [URUTAU LIMITED GNU MAKEFILE + PERL BUILD SYSTEM v1.5.1] ===
+=== [URUTAU LIMITED GNU MAKEFILE + PERL BUILD SYSTEM v1.5.2] ===
 
 Usage:
   make [target] [variables]

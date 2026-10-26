@@ -30,7 +30,7 @@ my $BLUE = "\e[34m";
 my $PURPLE = "\e[35m";
 my $RESET = "\e[0m";
 
-our $VERSION = version->declare("v1.5.1");
+our $VERSION = version->declare("v1.5.2");
 
 my $help = 0;
 my $verbose_help = 0;

@@ -16,27 +16,28 @@ export default (data: Lume.Data): JSX.Component => {
     const uniqueProjects: string[] = Array.from(new Set(projects)).sort(
         (left: string, right: string) => left.localeCompare(right),
     );
-    const projectRootUrls: Set<string> = new Set(
-        uniqueProjects.map((project: string) => createWikiProjectUrl(project)),
-    );
     const projectCards = uniqueProjects.map((project: string) => {
         const rootUrl: string = createWikiProjectUrl(project);
         const projectPages: Data[] = data.search.pages(
             `type=wiki wiki_project=${project}`,
             "title=asc",
         );
-        const rootPage: Data | undefined = projectPages.find((page: Data) =>
-            page.url === rootUrl
+        const projectIndexUrl: string = rootUrl.replace(
+            "/wiki/projects/",
+            "/wiki/",
+        );
+        const indexPage: Data | undefined = projectPages.find((page: Data) =>
+            String(page.url) === projectIndexUrl
         );
         const childPages: Data[] = projectPages.filter((page: Data) =>
-            page.url !== rootUrl
+            String(page.url) !== rootUrl
         );
 
         return {
-            description: rootPage?.description as string | undefined,
+            description: indexPage?.description as string | undefined,
             href: rootUrl,
             name: project,
-            pageCount: projectPages.length,
+            pageCount: childPages.length,
             pageLinks: childPages.map((page: Data) => ({
                 title: String(page.title),
                 url: String(page.url),
@@ -45,7 +46,7 @@ export default (data: Lume.Data): JSX.Component => {
     });
     const standalonePages: Data[] = pages.filter((page: Data) => {
         const pageUrl: string = String(page.url);
-        return pageUrl !== "/wiki/" && !projectRootUrls.has(pageUrl);
+        return pageUrl !== "/wiki/" && !page.wiki_project;
     });
 
     return (
@@ -73,7 +74,9 @@ export default (data: Lume.Data): JSX.Component => {
                 </section>
 
                 <section class="box">
-                    <h2>Páginas</h2>
+                    <h2>
+                        {standalonePages.length > 0 ? "Páginas" : "Cómo leer"}
+                    </h2>
                     {standalonePages.length > 0
                         ? (
                             <ul>
@@ -87,10 +90,26 @@ export default (data: Lume.Data): JSX.Component => {
                             </ul>
                         )
                         : (
-                            <p>
-                                No hay páginas internas aparte de los índices
-                                por proyecto.
-                            </p>
+                            <>
+                                <p>
+                                    Cada proyecto tiene una página índice con el
+                                    resumen y un mapa del resto.
+                                </p>
+                                <ul>
+                                    <li>
+                                        El menú lateral muestra las páginas del
+                                        proyecto que estás leyendo.
+                                    </li>
+                                    <li>
+                                        Las páginas de referencia incluyen
+                                        ejemplos y errores comunes.
+                                    </li>
+                                    <li>
+                                        Los enlaces al repositorio llevan al
+                                        código que documentan.
+                                    </li>
+                                </ul>
+                            </>
                         )}
                 </section>
             </div>
